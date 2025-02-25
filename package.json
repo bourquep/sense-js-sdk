@@ -1,5 +1,5 @@
 {
-  "name": "sense-js-sdk",
+  "name": "@bourquep/sense-js-sdk",
   "version": "0.0.0",
   "license": "GPL-3.0",
   "private": false,
@@ -22,6 +22,18 @@
     "type": "git",
     "url": "git+https://github.com/bourquep/sense-js-sdk.git"
   },
+  "files": [
+    "README.md",
+    "LICENSE.txt",
+    "dist"
+  ],
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "browser": false,
   "scripts": {
     "build": "tsup",
     "style-lint": "prettier -c ."

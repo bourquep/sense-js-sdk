@@ -22,8 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 export default defineConfig({
   entry: ['src/index.ts'],
   platform: 'node',
+  format: ['cjs', 'esm'],
   clean: true,
   dts: true,
+  sourcemap: true,
   banner: {
     js: banner
   }
