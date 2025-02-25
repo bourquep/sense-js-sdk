@@ -23,11 +23,13 @@
     "url": "https://github.com/bourquep/sense-js-sdk.git"
   },
   "scripts": {
+    "build": "tsup",
     "style-lint": "prettier -c ."
   },
   "devDependencies": {
     "prettier": "3.5.2",
     "prettier-plugin-organize-imports": "4.1.0",
+    "tsup": "8.4.0",
     "typescript": "5.7.3"
   }
 }
