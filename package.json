@@ -1,0 +1,33 @@
+{
+  "name": "sense-js-sdk",
+  "version": "0.0.0",
+  "license": "GPL-3.0",
+  "private": false,
+  "description": "A JavaScript SDK for accessing the Sense Energy Monitor API.",
+  "keywords": [
+    "sense",
+    "energy",
+    "sdk",
+    "api"
+  ],
+  "author": {
+    "name": "Pascal Bourque",
+    "email": "pascal@cosmos.moi"
+  },
+  "bugs": {
+    "url": "https://github.com/bourquep/sense-js-sdk/issues"
+  },
+  "homepage": "https://github.com/bourquep/sense-js-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bourquep/sense-js-sdk.git"
+  },
+  "scripts": {
+    "style-lint": "prettier -c ."
+  },
+  "devDependencies": {
+    "prettier": "3.5.2",
+    "prettier-plugin-organize-imports": "4.1.0",
+    "typescript": "5.7.3"
+  }
+}
