@@ -20,7 +20,7 @@
   "homepage": "https://github.com/bourquep/sense-js-sdk",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bourquep/sense-js-sdk.git"
+    "url": "git+https://github.com/bourquep/sense-js-sdk.git"
   },
   "scripts": {
     "build": "tsup",
