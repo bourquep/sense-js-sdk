@@ -30,3 +30,11 @@ export * from './types/Trends';
 export * from './types/TrendScale';
 export * from './types/TrendsDevice';
 export * from './types/UserSettings';
+
+export * from './types/RealtimeDataChangePayload';
+export * from './types/RealtimeDevice';
+export * from './types/RealtimeDeviceStatesPayload';
+export * from './types/RealtimeHelloPayload';
+export * from './types/RealtimeMonitorInfoPayload';
+export * from './types/RealtimePayload';
+export * from './types/RealtimeUpdatePayload';
