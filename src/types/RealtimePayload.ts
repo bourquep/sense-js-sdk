@@ -22,9 +22,7 @@ import { RealtimeHelloPayload } from './RealtimeHelloPayload';
 import { RealtimeMonitorInfoPayload } from './RealtimeMonitorInfoPayload';
 import { RealtimeUpdatePayload } from './RealtimeUpdatePayload';
 
-/**
- * Represents a realtime payload received from the Sense websocket connection.
- */
+/** Represents a realtime payload received from the Sense websocket connection. */
 export type WssPayload =
   | { payload: RealtimeMonitorInfoPayload; type: 'monitor_info' }
   | { payload: RealtimeHelloPayload; type: 'hello' }

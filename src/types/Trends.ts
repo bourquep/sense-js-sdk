@@ -18,9 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { TrendsDevice } from './TrendsDevice';
 
-/**
- * Trend data for device usage and energy statistics.
- */
+/** Trend data for device usage and energy statistics. */
 export interface Trends {
   steps: number;
   start: string;

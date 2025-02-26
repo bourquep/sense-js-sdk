@@ -19,9 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import { Monitor } from './Monitor';
 import { Settings } from './Settings';
 
-/**
- * Response object returned after successful authentication
- */
+/** Response object returned after successful authentication */
 export interface AuthenticationResponse {
   /** Whether the authentication was successful */
   authorized: boolean;

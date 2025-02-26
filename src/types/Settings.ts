@@ -18,9 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { UserSettings } from './UserSettings';
 
-/**
- * Root object containing a user's settings.
- */
+/** Root object containing a user's settings. */
 export interface Settings {
   user_id: number;
   settings: UserSettings;

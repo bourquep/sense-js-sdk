@@ -18,9 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { DeviceTags } from './DeviceTags';
 
-/**
- * Represents a Sense-monitored device with trend-related data and metadata.
- */
+/** Represents a Sense-monitored device with trend-related data and metadata. */
 export interface TrendsDevice {
   id: string;
   name: string;

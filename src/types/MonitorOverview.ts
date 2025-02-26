@@ -18,9 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { Monitor } from './Monitor';
 
-/**
- * Represents an overview of a Sense Energy Monitor's configuration and status.
- */
+/** Represents an overview of a Sense Energy Monitor's configuration and status. */
 export interface MonitorOverview {
   checksum: string;
   device_data_checksum: string;

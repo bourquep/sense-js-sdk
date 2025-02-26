@@ -16,9 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Various attributes of a Sense Energy Monitor.
- */
+/** Various attributes of a Sense Energy Monitor. */
 export interface MonitorAttributes {
   id: number;
   name: string;

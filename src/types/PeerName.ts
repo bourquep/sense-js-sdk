@@ -16,9 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Represents naming and identification information for a peer device.
- */
+/** Represents naming and identification information for a peer device. */
 export interface PeerName {
   Name: string;
   UserDeviceType?: string;

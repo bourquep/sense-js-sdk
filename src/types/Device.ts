@@ -19,9 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import { DeviceIcon } from './DeviceIcon';
 import { DeviceTags } from './DeviceTags';
 
-/**
- * Represents a Sense monitored device with its identifying information and attributes.
- */
+/** Represents a Sense monitored device with its identifying information and attributes. */
 export interface Device {
   id: string;
   name: string;

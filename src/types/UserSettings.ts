@@ -16,9 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Represents user-specific settings and preferences.
- */
+/** Represents user-specific settings and preferences. */
 export interface UserSettings {
   labs_enabled: boolean;
   hide_trends_carbon_card: boolean;

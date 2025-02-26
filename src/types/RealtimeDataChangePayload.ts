@@ -16,9 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Represents a realtime payload containing up-to-date data from a Sense monitor.
- */
+/** Represents a realtime payload containing up-to-date data from a Sense monitor. */
 export interface RealtimeDataChangePayload {
   user_version: number;
   partner_checksum: string;

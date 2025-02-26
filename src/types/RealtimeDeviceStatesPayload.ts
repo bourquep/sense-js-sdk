@@ -16,9 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Represents a realtime payload containing Sense device states.
- */
+/** Represents a realtime payload containing Sense device states. */
 export interface RealtimeDeviceStatesPayload {
   update_type: string;
   states: Array<{

@@ -16,9 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Represents a realtime payload that is sent after a successful connection.
- */
+/** Represents a realtime payload that is sent after a successful connection. */
 export interface RealtimeHelloPayload {
   online: boolean;
   connection_state: string;

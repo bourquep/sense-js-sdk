@@ -18,9 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { MonitorAttributes } from './MonitorAttributes';
 
-/**
- * Represents a Sense Energy Monitor with its configuration and status details.
- */
+/** Represents a Sense Energy Monitor with its configuration and status details. */
 export interface Monitor {
   id: number;
   date_created: string;

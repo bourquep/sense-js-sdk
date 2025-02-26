@@ -16,9 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Icons that can be used to represent a Sense device.
- */
+/** Icons that can be used to represent a Sense device. */
 export type DeviceIcon =
   | 'ac'
   | 'aquarium'

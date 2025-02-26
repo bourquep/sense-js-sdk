@@ -19,8 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import { RealtimeDevice } from './RealtimeDevice';
 
 /**
- * Represents a realtime payload containing up-to-date Sense monitor information,
- * including device details and power flow data.
+ * Represents a realtime payload containing up-to-date Sense monitor information, including device details and power
+ * flow data.
  */
 export interface RealtimeUpdatePayload {
   voltage?: number[];
@@ -46,8 +46,8 @@ export interface RealtimeUpdatePayload {
 }
 
 /**
- * Represents a delta update in the realtime data stream from a Sense monitor,
- * containing power consumption changes for specific channels between frames.
+ * Represents a delta update in the realtime data stream from a Sense monitor, containing power consumption changes for
+ * specific channels between frames.
  */
 export interface RealtimeUpdateDelta {
   frame: number;
