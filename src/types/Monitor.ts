@@ -16,17 +16,25 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-export * from './types/AuthenticationResponse';
-export * from './types/Device';
-export * from './types/DeviceIcon';
-export * from './types/DeviceTags';
-export * from './types/DeviceType';
-export * from './types/Monitor';
-export * from './types/MonitorAttributes';
-export * from './types/MonitorOverview';
-export * from './types/PeerName';
-export * from './types/Settings';
-export * from './types/Trends';
-export * from './types/TrendScale';
-export * from './types/TrendsDevice';
-export * from './types/UserSettings';
+import { MonitorAttributes } from './MonitorAttributes';
+
+/**
+ * Represents a Sense Energy Monitor with its configuration and status details.
+ */
+export interface Monitor {
+  id: number;
+  date_created: string;
+  serial_number: string;
+  time_zone: string;
+  solar_connected: boolean;
+  solar_configured: boolean;
+  online: boolean;
+  attributes: MonitorAttributes;
+  signal_check_completed_time: string;
+  ethernet_supported: boolean;
+  power_over_ethernet_supported: boolean;
+  aux_ignore: boolean;
+  aux_port: string;
+  hardware_type: string;
+  zigbee_supported: boolean;
+}

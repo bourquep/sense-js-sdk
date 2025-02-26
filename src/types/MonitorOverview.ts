@@ -16,17 +16,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-export * from './types/AuthenticationResponse';
-export * from './types/Device';
-export * from './types/DeviceIcon';
-export * from './types/DeviceTags';
-export * from './types/DeviceType';
-export * from './types/Monitor';
-export * from './types/MonitorAttributes';
-export * from './types/MonitorOverview';
-export * from './types/PeerName';
-export * from './types/Settings';
-export * from './types/Trends';
-export * from './types/TrendScale';
-export * from './types/TrendsDevice';
-export * from './types/UserSettings';
+import { Monitor } from './Monitor';
+
+/**
+ * Represents an overview of a Sense Energy Monitor's configuration and status.
+ */
+export interface MonitorOverview {
+  checksum: string;
+  device_data_checksum: string;
+  monitor_overview: {
+    monitor: Monitor;
+    ndi_enabled: boolean;
+    local_api_enabled: boolean;
+    partner_channel: string;
+    partner_tags: string[];
+    num_devices: number;
+    num_named_devices: number;
+    num_unnamed_devices: number;
+    notify_weak_connection: boolean;
+  };
+}

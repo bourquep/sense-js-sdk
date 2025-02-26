@@ -16,17 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-export * from './types/AuthenticationResponse';
-export * from './types/Device';
-export * from './types/DeviceIcon';
-export * from './types/DeviceTags';
-export * from './types/DeviceType';
-export * from './types/Monitor';
-export * from './types/MonitorAttributes';
-export * from './types/MonitorOverview';
-export * from './types/PeerName';
-export * from './types/Settings';
-export * from './types/Trends';
-export * from './types/TrendScale';
-export * from './types/TrendsDevice';
-export * from './types/UserSettings';
+/**
+ * Represents the different time scales at which trends can be analyzed.
+ */
+export type TrendScale = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR' | 'CYCLE';
