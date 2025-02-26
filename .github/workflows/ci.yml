@@ -79,6 +79,8 @@ jobs:
           name: build-output
           path: ./dist
 
+      - run: npm ci -D
+
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
