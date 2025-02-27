@@ -21,7 +21,7 @@ import { Session } from '@/types/Session';
 import isEqual from 'lodash/isEqual';
 
 /** Defines the event types for the SenseApiClient. */
-type SenseApiClientEventTypes = {
+export type SenseApiClientEventTypes = {
   /**
    * Event emitted when the session changes.
    *
@@ -38,7 +38,7 @@ export class SenseApiClient {
   /**
    * Event emitter for client events.
    *
-   * @see {@link EventEmitter<SenseApiClientEventTypes>} for the possible events and their payloads.
+   * @see {@link SenseApiClientEventTypes} for the possible events and their payloads.
    */
   readonly emitter = new EventEmitter<SenseApiClientEventTypes>();
 

@@ -35,8 +35,9 @@
   },
   "browser": false,
   "scripts": {
+    "style-lint": "prettier -c .",
     "build": "tsup",
-    "style-lint": "prettier -c ."
+    "build:docs": "typedoc"
   },
   "devDependencies": {
     "@semantic-release/npm": "12.0.1",
@@ -48,6 +49,8 @@
     "prettier-plugin-organize-imports": "4.1.0",
     "semantic-release": "24.2.3",
     "tsup": "8.4.0",
+    "typedoc": "0.27.9",
+    "typedoc-material-theme": "1.3.0",
     "typescript": "5.7.3"
   },
   "dependencies": {
