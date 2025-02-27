@@ -25,6 +25,7 @@ export * from './types/Monitor';
 export * from './types/MonitorAttributes';
 export * from './types/MonitorOverview';
 export * from './types/PeerName';
+export * from './types/Session';
 export * from './types/Settings';
 export * from './types/Trends';
 export * from './types/TrendScale';
@@ -38,3 +39,5 @@ export * from './types/RealtimeHelloPayload';
 export * from './types/RealtimeMonitorInfoPayload';
 export * from './types/RealtimePayload';
 export * from './types/RealtimeUpdatePayload';
+
+export * from './api/SenseApiClient';
