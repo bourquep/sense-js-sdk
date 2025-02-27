@@ -45,6 +45,12 @@ jobs:
       - run: npm ci
       - run: npm test
 
+      - name: Publish Test Report
+        uses: ctrf-io/github-test-reporter@v1
+        with:
+          report-path: './vitest-ctrf/*.json'
+        if: always()
+
   build:
     needs:
       - lint

@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     dir: './tests',
-    environment: 'node'
+    environment: 'node',
+    reporters: ['vitest-ctrf-json-reporter', 'default']
   }
 });
