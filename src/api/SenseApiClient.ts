@@ -18,7 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import { EventEmitter } from '@/lib/EventEmitter';
 import { Session } from '@/types/Session';
+import dayjs from 'dayjs';
 import isEqual from 'lodash/isEqual';
+import { SenseApiError, UnauthenticatedError } from './Errors';
+import { Logger, VoidLogger } from './Logger';
+import { SenseApiClientOptions } from './SenseApiClientOptions';
 
 /** Defines the event types for the SenseApiClient. */
 export type SenseApiClientEventTypes = {
@@ -36,6 +40,18 @@ export type SenseApiClientEventTypes = {
 export class SenseApiClient {
   /** The current session object, if any. */
   private _session?: Session;
+
+  /** The logger instance used by the client. */
+  private _logger: Logger;
+
+  /** The fetcher function used by the client. */
+  private _fetcher: typeof fetch;
+
+  /** The base URL for the Sense API. */
+  private _apiUrl: string;
+
+  /** The base URL for the Sense WebSocket API. */
+  private _wssUrl: string;
 
   /**
    * Event emitter for client events.
@@ -71,7 +87,75 @@ export class SenseApiClient {
    *
    * @param session - Optional initial session.
    */
-  constructor(session?: Session) {
+  constructor(session?: Session, options?: SenseApiClientOptions) {
     this._session = session;
+    this._logger = options?.logger ?? new VoidLogger();
+    this._fetcher = options?.fetcher ?? fetch;
+    this._apiUrl = options?.apiUrl ?? 'https://api.sense.com/apiservice/api/v1';
+    this._wssUrl = options?.wssUrl ?? 'wss://clientrt.sense.com';
+  }
+
+  /** Refreshes the access token if it has expired or is expiring soon. */
+  private async refreshAccessTokenIfNeeded() {
+    if (!this.session) {
+      throw new UnauthenticatedError('An attempt was made to access a resource without a valid session.');
+    }
+
+    this._logger.debug('Parsing access token to determine expiration time...');
+
+    const { accessToken, refreshToken } = this.session;
+    const jwtAccessToken = accessToken.startsWith('t1.v2.') ? accessToken.substring(7) : accessToken;
+
+    let payload: { exp?: number; userId?: string };
+    try {
+      const splitToken = jwtAccessToken.split('.');
+      if (splitToken.length !== 3) {
+        throw new Error('Invalid access token format.');
+      }
+
+      payload = JSON.parse(Buffer.from(splitToken[1], 'base64').toString());
+      if (!payload.exp) {
+        throw new Error('No expiration time in access token.');
+      }
+      if (!payload.userId) {
+        throw new Error('No subject id in access token.');
+      }
+    } catch (error) {
+      this.session = undefined;
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new UnauthenticatedError(`An attempt was made to access a resource without a valid session: ${message}`);
+    }
+
+    if (dayjs.unix(payload.exp).isAfter(dayjs().subtract(15, 'minutes'))) {
+      this._logger.debug('Access token is still valid, not renewing.');
+      return;
+    }
+
+    this._logger.debug('Access token is expiring, renewing...');
+
+    const response = await this._fetcher(`${this._apiUrl}/renew`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        user_id: payload.userId,
+        refresh_token: refreshToken
+      })
+    });
+
+    if (!response.ok) {
+      // Don't clear this.session as this may be a transient error.
+      this._logger.error('Failed to renew access token.', response.statusText);
+      throw new SenseApiError(response);
+    }
+
+    const responseData = await response.json();
+
+    this.session = {
+      ...this.session,
+      accessToken: responseData.access_token,
+      refreshToken: responseData.refresh_token
+    };
   }
 }

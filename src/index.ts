@@ -40,4 +40,6 @@ export * from './types/RealtimeMonitorInfoPayload';
 export * from './types/RealtimePayload';
 export * from './types/RealtimeUpdatePayload';
 
+export * from './api/Errors';
+export * from './api/Logger';
 export * from './api/SenseApiClient';

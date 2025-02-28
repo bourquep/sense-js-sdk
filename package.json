@@ -59,6 +59,7 @@
     "vitest-ctrf-json-reporter": "0.0.2"
   },
   "dependencies": {
+    "dayjs": "1.11.13",
     "lodash": "4.17.21"
   }
 }
