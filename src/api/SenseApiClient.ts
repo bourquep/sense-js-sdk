@@ -25,6 +25,8 @@ export type SenseApiClientEventTypes = {
   /**
    * Event emitted when the session changes.
    *
+   * @remarks
+   * You should subscribe to this event and persist the session object whenever it changes.
    * @param session - The new session object or undefined if session was cleared.
    */
   sessionChanged: [session: Session | undefined];
