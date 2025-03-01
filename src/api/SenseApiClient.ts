@@ -126,7 +126,7 @@ export class SenseApiClient {
       throw new UnauthenticatedError(`An attempt was made to access a resource without a valid session: ${message}`);
     }
 
-    if (dayjs.unix(payload.exp).isAfter(dayjs().subtract(15, 'minutes'))) {
+    if (dayjs.unix(payload.exp).isAfter(dayjs().add(15, 'minutes'))) {
       this._logger.debug('Access token is still valid, not renewing.');
       return;
     }
