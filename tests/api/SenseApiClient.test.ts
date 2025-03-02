@@ -237,6 +237,240 @@ describe('SenseApiClient.session', () => {
   });
 });
 
+describe('SenseApiClient.login', () => {
+  const mockFetch = vi.fn();
+  const email = 'test@example.com';
+  const password = 'password123';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockReset();
+  });
+
+  describe('successful login without MFA', () => {
+    it('should authenticate successfully and create session', async () => {
+      const mockAuthResponse = {
+        user_id: 123,
+        monitors: [{ id: 456 }, { id: 789 }],
+        access_token: 'test-access-token',
+        refresh_token: 'test-refresh-token'
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockAuthResponse)
+      });
+
+      const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      const sessionChangedSpy = vi.fn();
+      client.emitter.on('sessionChanged', sessionChangedSpy);
+
+      const result = await client.login(email, password);
+
+      expect(result).toBeUndefined();
+      expect(client.session).toEqual({
+        userId: mockAuthResponse.user_id,
+        monitorIds: [456, 789],
+        accessToken: mockAuthResponse.access_token,
+        refreshToken: mockAuthResponse.refresh_token
+      });
+      expect(sessionChangedSpy).toHaveBeenCalledWith(client.session);
+      expect(mockFetch).toHaveBeenCalledWith('https://api.sense.com/apiservice/api/v1/authenticate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: expect.any(URLSearchParams)
+      });
+
+      const body = mockFetch.mock.calls[0][1].body;
+      expect(body.get('email')).toBe(email);
+      expect(body.get('password')).toBe(password);
+    });
+
+    it('should clear existing session before login attempt', async () => {
+      const existingSession = {
+        userId: 999,
+        monitorIds: [888],
+        accessToken: 'old-token',
+        refreshToken: 'old-refresh'
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            user_id: 123,
+            monitors: [{ id: 456 }],
+            access_token: 'new-token',
+            refresh_token: 'new-refresh'
+          })
+      });
+
+      const client = new SenseApiClient(existingSession, { fetcher: mockFetch });
+      const sessionChangedSpy = vi.fn();
+      client.emitter.on('sessionChanged', sessionChangedSpy);
+
+      await client.login(email, password);
+
+      expect(sessionChangedSpy).toHaveBeenCalledTimes(2);
+      expect(sessionChangedSpy).toHaveBeenNthCalledWith(1, undefined);
+      expect(sessionChangedSpy).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          accessToken: 'new-token'
+        })
+      );
+    });
+  });
+
+  describe('MFA required scenario', () => {
+    it('should return MFA token when MFA is required', async () => {
+      const mockMfaResponse = {
+        mfa_token: 'test-mfa-token'
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: () => Promise.resolve(mockMfaResponse)
+      });
+
+      const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      const result = await client.login(email, password);
+
+      expect(result).toBe('test-mfa-token');
+      expect(client.session).toBeUndefined();
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw SenseApiError on authentication failure', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request'
+      });
+
+      const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      await expect(client.login(email, password)).rejects.toThrow(SenseApiError);
+    });
+
+    it('should handle network errors', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+      const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      await expect(client.login(email, password)).rejects.toThrow('Network error');
+    });
+  });
+});
+
+describe('SenseApiClient.completeMfaLogin', () => {
+  const mockFetch = vi.fn();
+  const mfaToken = 'test-mfa-token';
+  const oneTimePassword = '123456';
+  const clientDate = new Date('2024-01-01T12:00:00Z');
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockReset();
+  });
+
+  describe('successful MFA completion', () => {
+    it('should complete MFA authentication and create session', async () => {
+      const mockAuthResponse = {
+        user_id: 123,
+        monitors: [{ id: 456 }],
+        access_token: 'mfa-access-token',
+        refresh_token: 'mfa-refresh-token'
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockAuthResponse)
+      });
+
+      const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      const sessionChangedSpy = vi.fn();
+      client.emitter.on('sessionChanged', sessionChangedSpy);
+
+      await client.completeMfaLogin(mfaToken, oneTimePassword, clientDate);
+
+      expect(client.session).toEqual({
+        userId: mockAuthResponse.user_id,
+        monitorIds: [456],
+        accessToken: mockAuthResponse.access_token,
+        refreshToken: mockAuthResponse.refresh_token
+      });
+      expect(sessionChangedSpy).toHaveBeenCalledWith(client.session);
+      expect(mockFetch).toHaveBeenCalledWith('https://api.sense.com/apiservice/api/v1/authenticate/mfa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: expect.any(URLSearchParams)
+      });
+
+      const body = mockFetch.mock.calls[0][1].body;
+      expect(body.get('totp')).toBe(oneTimePassword);
+      expect(body.get('mfa_token')).toBe(mfaToken);
+      expect(body.get('client_time')).toBe(clientDate.toISOString());
+    });
+
+    it('should update existing session after MFA completion', async () => {
+      const existingSession = {
+        userId: 999,
+        monitorIds: [888],
+        accessToken: 'old-token',
+        refreshToken: 'old-refresh'
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            user_id: 123,
+            monitors: [{ id: 456 }],
+            access_token: 'new-token',
+            refresh_token: 'new-refresh'
+          })
+      });
+
+      const client = new SenseApiClient(existingSession, { fetcher: mockFetch });
+      const sessionChangedSpy = vi.fn();
+      client.emitter.on('sessionChanged', sessionChangedSpy);
+
+      await client.completeMfaLogin(mfaToken, oneTimePassword, clientDate);
+
+      expect(sessionChangedSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          accessToken: 'new-token'
+        })
+      );
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw SenseApiError on MFA verification failure', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        statusText: 'Invalid MFA code'
+      });
+
+      const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      await expect(client.completeMfaLogin(mfaToken, oneTimePassword, clientDate)).rejects.toThrow(SenseApiError);
+    });
+
+    it('should handle network errors during MFA completion', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+      const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      await expect(client.completeMfaLogin(mfaToken, oneTimePassword, clientDate)).rejects.toThrow('Network error');
+    });
+  });
+});
+
 describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
   const mockFetch = vi.fn();
 
