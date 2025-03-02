@@ -1,7 +1,5 @@
 {
-  "entryPoints": ["./src"],
-  "entryPointStrategy": "expand",
-  "exclude": "**/index.ts",
+  "entryPoints": ["./src", "./src/lib/**/*.ts"],
   "plugin": ["typedoc-material-theme"],
   "themeColor": "#e65531"
 }
