@@ -36,7 +36,7 @@
   },
   "browser": false,
   "scripts": {
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint --max-warnings 0 src/**/*.ts",
     "style-lint": "prettier -c .",
     "test": "vitest",
     "build": "tsup",
