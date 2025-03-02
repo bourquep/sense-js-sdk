@@ -24,6 +24,7 @@ import { EventEmitter as NodeEventEmitter } from 'node:events';
  * @remarks
  * Source: {@link https://blog.makerx.com.au/a-type-safe-event-emitter-in-node-js}
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export class EventEmitter<TEvents extends Record<string, any>> {
   private _emitter = new NodeEventEmitter();
 
@@ -45,3 +46,4 @@ export class EventEmitter<TEvents extends Record<string, any>> {
     this._emitter.off(eventName, handler as any);
   }
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
