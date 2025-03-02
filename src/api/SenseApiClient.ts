@@ -230,7 +230,7 @@ export class SenseApiClient {
    * @throws {@link SenseApiError} If the API request fails.
    * @throws {@link UnauthenticatedError} If there is no valid session.
    */
-  async getMonitorOverview(monitorId: string): Promise<MonitorOverview> {
+  async getMonitorOverview(monitorId: number): Promise<MonitorOverview> {
     const accessToken = await this.refreshAccessTokenIfNeeded();
 
     const response = await this._fetcher(`${this._apiUrl}/app/monitors/${monitorId}/overview`, {
@@ -254,7 +254,7 @@ export class SenseApiClient {
    * @throws {@link SenseApiError} If the API request fails.
    * @throws {@link UnauthenticatedError} If there is no valid session.
    */
-  async getMonitorDevices(monitorId: string): Promise<Device[]> {
+  async getMonitorDevices(monitorId: number): Promise<Device[]> {
     const accessToken = await this.refreshAccessTokenIfNeeded();
 
     const response = await this._fetcher(`${this._apiUrl}/app/monitors/${monitorId}/devices`, {
@@ -284,14 +284,14 @@ export class SenseApiClient {
    * @throws {@link SenseApiError} If the API request fails.
    * @throws {@link UnauthenticatedError} If there is no valid session.
    */
-  async getMonitorTrends(monitorId: string, timezone: string, scale: TrendScale, startDate?: Date): Promise<Trends> {
+  async getMonitorTrends(monitorId: number, timezone: string, scale: TrendScale, startDate?: Date): Promise<Trends> {
     const accessToken = await this.refreshAccessTokenIfNeeded();
 
     const dateUnit = this.getDayJsUnitTypeFromTrendScale(scale);
     const startDay = this.getTrendStartDay(timezone, startDate).startOf(dateUnit);
 
     const url = new URL(`${this._apiUrl}/app/history/trends`);
-    url.searchParams.append('monitor_id', monitorId);
+    url.searchParams.append('monitor_id', monitorId.toString());
     url.searchParams.append('scale', scale);
     url.searchParams.append('start', startDay.toISOString());
 

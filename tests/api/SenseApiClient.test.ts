@@ -714,7 +714,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
 
 describe('SenseApiClient.getMonitorOverview', () => {
   const mockFetch = vi.fn();
-  const monitorId = 'test-monitor-id';
+  const monitorId = 456;
   const validSession: Session = {
     userId: 123,
     monitorIds: [456],
@@ -767,7 +767,7 @@ describe('SenseApiClient.getMonitorOverview', () => {
 
 describe('SenseApiClient.getMonitorDevices', () => {
   const mockFetch = vi.fn();
-  const monitorId = 'test-monitor-id';
+  const monitorId = 456;
   const validSession: Session = {
     userId: 123,
     monitorIds: [456],
@@ -820,7 +820,7 @@ describe('SenseApiClient.getMonitorDevices', () => {
 
 describe('SenseApiClient.getMonitorTrends', () => {
   const mockFetch = vi.fn();
-  const monitorId = 'test-monitor-id';
+  const monitorId = 456;
   const timezone = 'America/New_York';
   const validSession: Session = {
     userId: 123,
@@ -866,7 +866,7 @@ describe('SenseApiClient.getMonitorTrends', () => {
 
     expect(result).toEqual(mockTrends);
     const url = new URL(mockFetch.mock.calls[0][0]);
-    expect(url.searchParams.get('monitor_id')).toBe(monitorId);
+    expect(url.searchParams.get('monitor_id')).toBe(monitorId.toString());
     expect(url.searchParams.get('scale')).toBe('DAY');
     expect(url.searchParams.get('start')).toBeDefined();
   });

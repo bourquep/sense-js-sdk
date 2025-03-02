@@ -33,6 +33,9 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    env:
+      SENSE_TEST_EMAIL: ${{ secrets.SENSE_TEST_EMAIL }}
+      SENSE_TEST_PASSWORD: ${{ secrets.SENSE_TEST_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v4
