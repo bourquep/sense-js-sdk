@@ -21,7 +21,7 @@ export class UnauthenticatedError extends Error {
   /**
    * Creates a new UnauthenticatedError instance.
    *
-   * @param message The error message
+   * @param message - The error message
    */
   constructor(message: string) {
     super(message);
@@ -39,7 +39,7 @@ export class SenseApiError extends Error {
   /**
    * Creates a new SenseApiError instance.
    *
-   * @param apiResponse The failed Response object from the API call
+   * @param apiResponse - The failed Response object from the API call
    */
   constructor(apiResponse: Response) {
     super(

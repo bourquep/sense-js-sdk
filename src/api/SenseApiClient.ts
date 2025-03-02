@@ -116,8 +116,8 @@ export class SenseApiClient {
    *
    * @param monitorId - The ID of the Sense monitor to get an overview for.
    * @returns A promise that resolves to a {@link MonitorOverview} object containing the monitor's overview data.
-   * @throws {SenseApiError} If the API request fails.
-   * @throws {UnauthenticatedError} If there is no valid session.
+   * @throws {@link SenseApiError} If the API request fails.
+   * @throws {@link UnauthenticatedError} If there is no valid session.
    */
   async getMonitorOverview(monitorId: string): Promise<MonitorOverview> {
     const accessToken = await this.refreshAccessTokenIfNeeded();
@@ -140,8 +140,8 @@ export class SenseApiClient {
    *
    * @param monitorId - The ID of the Sense monitor to get devices for.
    * @returns A promise that resolves to an array of {@link Device} objects representing the detected devices.
-   * @throws {SenseApiError} If the API request fails.
-   * @throws {UnauthenticatedError} If there is no valid session.
+   * @throws {@link SenseApiError} If the API request fails.
+   * @throws {@link UnauthenticatedError} If there is no valid session.
    */
   async getMonitorDevices(monitorId: string): Promise<Device[]> {
     const accessToken = await this.refreshAccessTokenIfNeeded();
@@ -170,8 +170,8 @@ export class SenseApiClient {
    * @param startDate - Optional start date to retrieve trends from. If not provided, trends will start from the current
    *   date.
    * @returns A promise that resolves to a {@link Trends} object containing the trend data.
-   * @throws {SenseApiError} If the API request fails.
-   * @throws {UnauthenticatedError} If there is no valid session.
+   * @throws {@link SenseApiError} If the API request fails.
+   * @throws {@link UnauthenticatedError} If there is no valid session.
    */
   async getMonitorTrends(monitorId: string, timezone: string, scale: TrendScale, startDate?: Date): Promise<Trends> {
     const accessToken = await this.refreshAccessTokenIfNeeded();
@@ -197,11 +197,7 @@ export class SenseApiClient {
     return response.json();
   }
 
-  /**
-   * Refreshes the access token if it has expired or is expiring soon.
-   *
-   * @private
-   */
+  /** Refreshes the access token if it has expired or is expiring soon. */
   private async refreshAccessTokenIfNeeded(): Promise<string> {
     if (!this.session) {
       throw new UnauthenticatedError('An attempt was made to access a resource without a valid session.');
@@ -270,7 +266,6 @@ export class SenseApiClient {
   /**
    * Determines the starting day for trend data based on provided timezone and optional start date.
    *
-   * @private
    * @param timezone - The timezone to use for date calculations, in IANA format (e.g. 'America/New_York').
    * @param startDate - Optional date to start trends from. If not provided, current date is used.
    * @returns A `dayjs` object representing the start day in the specified timezone.
@@ -293,7 +288,6 @@ export class SenseApiClient {
   /**
    * Converts a {@link TrendScale} value to its corresponding `dayjs` unit type.
    *
-   * @private
    * @param scale - The {@link TrendScale} value to convert (`DAY`, `WEEK`, `MONTH`, `YEAR`, or `CYCLE`).
    * @returns The corresponding `dayjs.OpUnitType` ('day', 'week', 'month', or 'year').
    */

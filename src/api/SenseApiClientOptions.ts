@@ -23,14 +23,14 @@ export interface SenseApiClientOptions {
   /**
    * Optional logger instance for client logging.
    *
-   * @default A _void_ logger instance that does nothing.
+   * @defaultValue A _void_ logger instance that does nothing.
    */
   logger?: Logger;
 
   /**
    * Optional fetch function to use for HTTP requests.
    *
-   * @default The global `fetch` function.
+   * @defaultValue The global `fetch` function.
    */
   fetcher?: typeof fetch;
 
@@ -39,7 +39,7 @@ export interface SenseApiClientOptions {
    *
    * @remarks
    * Overriding this value should never be necessary.
-   * @default `https://api.sense.com/apiservice/api/v1`
+   * @defaultValue `https://api.sense.com/apiservice/api/v1`
    */
   apiUrl?: string;
 
@@ -48,7 +48,7 @@ export interface SenseApiClientOptions {
    *
    * @remarks
    * Overriding this value should never be necessary.
-   * @default `wss://clientrt.sense.com`
+   * @defaultValue `wss://clientrt.sense.com`
    */
   wssUrl?: string;
 }
