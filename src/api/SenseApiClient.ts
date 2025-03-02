@@ -17,12 +17,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { EventEmitter } from '@/lib/EventEmitter';
+import { Device } from '@/types/Device';
+import { MonitorOverview } from '@/types/MonitorOverview';
 import { Session } from '@/types/Session';
+import { Trends } from '@/types/Trends';
+import { TrendScale } from '@/types/TrendScale';
 import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone';
+import updateLocale from 'dayjs/plugin/updateLocale';
+import utc from 'dayjs/plugin/utc';
 import isEqual from 'lodash/isEqual';
 import { SenseApiError, UnauthenticatedError } from './Errors';
 import { Logger, VoidLogger } from './Logger';
 import { SenseApiClientOptions } from './SenseApiClientOptions';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(updateLocale);
+
+dayjs.updateLocale('en', {
+  weekStart: 1 // Monday is the first day of the week.
+});
 
 /** Defines the event types for the SenseApiClient. */
 export type SenseApiClientEventTypes = {
@@ -85,7 +100,8 @@ export class SenseApiClient {
   /**
    * Creates a new SenseApiClient instance.
    *
-   * @param session - Optional initial session.
+   * @param session - Optional initial {@link Session} value.
+   * @param options - Optional configuration {@link SenseApiClientOptions}.
    */
   constructor(session?: Session, options?: SenseApiClientOptions) {
     this._session = session;
@@ -95,7 +111,97 @@ export class SenseApiClient {
     this._wssUrl = options?.wssUrl ?? 'wss://clientrt.sense.com';
   }
 
-  /** Refreshes the access token if it has expired or is expiring soon. */
+  /**
+   * Retrieves an overview of a specific Sense monitor.
+   *
+   * @param monitorId - The ID of the Sense monitor to get an overview for.
+   * @returns A promise that resolves to a {@link MonitorOverview} object containing the monitor's overview data.
+   * @throws {SenseApiError} If the API request fails.
+   * @throws {UnauthenticatedError} If there is no valid session.
+   */
+  async getMonitorOverview(monitorId: string): Promise<MonitorOverview> {
+    const accessToken = await this.refreshAccessTokenIfNeeded();
+
+    const response = await this._fetcher(`${this._apiUrl}/app/monitors/${monitorId}/overview`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new SenseApiError(response);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Retrieves all devices detected by a specific Sense monitor.
+   *
+   * @param monitorId - The ID of the Sense monitor to get devices for.
+   * @returns A promise that resolves to an array of {@link Device} objects representing the detected devices.
+   * @throws {SenseApiError} If the API request fails.
+   * @throws {UnauthenticatedError} If there is no valid session.
+   */
+  async getMonitorDevices(monitorId: string): Promise<Device[]> {
+    const accessToken = await this.refreshAccessTokenIfNeeded();
+
+    const response = await this._fetcher(`${this._apiUrl}/app/monitors/${monitorId}/devices`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new SenseApiError(response);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Retrieves historical trend data for a Sense monitor.
+   *
+   * @param monitorId - The ID of the Sense monitor to get trends for.
+   * @param timezone - The timezone to use for date calculations, in IANA format (e.g. 'America/New_York'). This should
+   *   correspond to the timezone of the monitor, as found in the {@link Monitor} object returned by
+   *   {@link getMonitorOverview}.
+   * @param scale - The time scale for which to retrieve trends (e.g. `DAY`, `WEEK`, `MONTH`, `YEAR`, `CYCLE`).
+   * @param startDate - Optional start date to retrieve trends from. If not provided, trends will start from the current
+   *   date.
+   * @returns A promise that resolves to a {@link Trends} object containing the trend data.
+   * @throws {SenseApiError} If the API request fails.
+   * @throws {UnauthenticatedError} If there is no valid session.
+   */
+  async getMonitorTrends(monitorId: string, timezone: string, scale: TrendScale, startDate?: Date): Promise<Trends> {
+    const accessToken = await this.refreshAccessTokenIfNeeded();
+
+    const dateUnit = this.getDayJsUnitTypeFromTrendScale(scale);
+    const startDay = this.getTrendStartDay(timezone, startDate).startOf(dateUnit);
+
+    const url = new URL(`${this._apiUrl}/app/history/trends`);
+    url.searchParams.append('monitor_id', monitorId);
+    url.searchParams.append('scale', scale);
+    url.searchParams.append('start', startDay.toISOString());
+
+    const response = await this._fetcher(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new SenseApiError(response);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Refreshes the access token if it has expired or is expiring soon.
+   *
+   * @private
+   */
   private async refreshAccessTokenIfNeeded(): Promise<string> {
     if (!this.session) {
       throw new UnauthenticatedError('An attempt was made to access a resource without a valid session.');
@@ -159,5 +265,53 @@ export class SenseApiClient {
     };
 
     return responseData.access_token;
+  }
+
+  /**
+   * Determines the starting day for trend data based on provided timezone and optional start date.
+   *
+   * @private
+   * @param timezone - The timezone to use for date calculations, in IANA format (e.g. 'America/New_York').
+   * @param startDate - Optional date to start trends from. If not provided, current date is used.
+   * @returns A `dayjs` object representing the start day in the specified timezone.
+   */
+  private getTrendStartDay(timezone: string, startDate?: Date): dayjs.Dayjs {
+    try {
+      const startDay = startDate ? dayjs.tz(startDate, timezone) : dayjs.tz(undefined, timezone);
+      if (startDay.isValid()) {
+        return startDay;
+      }
+
+      this._logger.warn(`Failed to parse start date '${startDate}' as a valid date. Using current date instead.`);
+      return dayjs.tz(timezone);
+    } catch (error) {
+      this._logger.warn(`Failed to parse timezone '${timezone}' with error: '${error}'. Using UTC instead.`);
+      return dayjs.utc();
+    }
+  }
+
+  /**
+   * Converts a {@link TrendScale} value to its corresponding `dayjs` unit type.
+   *
+   * @private
+   * @param scale - The {@link TrendScale} value to convert (`DAY`, `WEEK`, `MONTH`, `YEAR`, or `CYCLE`).
+   * @returns The corresponding `dayjs.OpUnitType` ('day', 'week', 'month', or 'year').
+   */
+  private getDayJsUnitTypeFromTrendScale(scale: TrendScale): dayjs.OpUnitType {
+    switch (scale) {
+      case 'DAY':
+        return 'day';
+      case 'WEEK':
+        return 'week';
+      case 'MONTH':
+        return 'month';
+      case 'YEAR':
+        return 'year';
+      case 'CYCLE':
+        return 'day';
+      default:
+        this._logger.warn(`Unknown trend scale '${scale}'. Using 'day' instead.`);
+        return 'day';
+    }
   }
 }

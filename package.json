@@ -56,7 +56,8 @@
     "typescript": "5.8.2",
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "3.0.7",
-    "vitest-ctrf-json-reporter": "0.0.2"
+    "vitest-ctrf-json-reporter": "0.0.2",
+    "vitest-mock-extended": "3.0.1"
   },
   "dependencies": {
     "dayjs": "1.11.13",
