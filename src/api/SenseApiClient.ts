@@ -75,7 +75,11 @@ export class SenseApiClient {
    */
   readonly emitter = new EventEmitter<SenseApiClientEventTypes>();
 
-  /** Gets the current session. */
+  /**
+   * Gets the current session.
+   *
+   * @returns The current session object, if any.
+   */
   get session() {
     return this._session;
   }
@@ -92,7 +96,11 @@ export class SenseApiClient {
     }
   }
 
-  /** Returns whether the client currently has an active session. */
+  /**
+   * Returns whether the client currently has an active session.
+   *
+   * @returns True if the client has an active session, false otherwise.
+   */
   get isAuthenticated(): boolean {
     return !!this.session;
   }
@@ -197,7 +205,11 @@ export class SenseApiClient {
     return response.json();
   }
 
-  /** Refreshes the access token if it has expired or is expiring soon. */
+  /**
+   * Refreshes the access token if it has expired or is expiring soon.
+   *
+   * @returns A promise that resolves to the refreshed access token.
+   */
   private async refreshAccessTokenIfNeeded(): Promise<string> {
     if (!this.session) {
       throw new UnauthenticatedError('An attempt was made to access a resource without a valid session.');
