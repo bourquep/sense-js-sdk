@@ -96,7 +96,7 @@ export class SenseApiClient {
   }
 
   /** Refreshes the access token if it has expired or is expiring soon. */
-  private async refreshAccessTokenIfNeeded() {
+  private async refreshAccessTokenIfNeeded(): Promise<string> {
     if (!this.session) {
       throw new UnauthenticatedError('An attempt was made to access a resource without a valid session.');
     }
@@ -128,7 +128,7 @@ export class SenseApiClient {
 
     if (dayjs.unix(payload.exp).isAfter(dayjs().add(15, 'minutes'))) {
       this._logger.debug('Access token is still valid, not renewing.');
-      return;
+      return accessToken;
     }
 
     this._logger.debug('Access token is expiring, renewing...');
@@ -157,5 +157,7 @@ export class SenseApiClient {
       accessToken: responseData.access_token,
       refreshToken: responseData.refresh_token
     };
+
+    return responseData.access_token;
   }
 }

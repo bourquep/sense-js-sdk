@@ -418,4 +418,47 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
       expect(sessionChangedSpy).toHaveBeenCalledWith(client.session);
     });
   });
+
+  describe('return values', () => {
+    it('should return the existing access token when not expired', async () => {
+      const futureExp = dayjs().add(1, 'hour').unix();
+      const existingToken = createJwtToken(futureExp);
+      const session: Session = {
+        userId: 'test-user',
+        accessToken: existingToken,
+        refreshToken: 'refresh-token'
+      };
+      const client = new SenseApiClient(session, { fetcher: mockFetch });
+
+      const result = await client['refreshAccessTokenIfNeeded']();
+
+      expect(result).toBe(existingToken);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should return the new access token after successful refresh', async () => {
+      const soonExp = dayjs().add(10, 'minutes').unix();
+      const session: Session = {
+        userId: 'test-user',
+        accessToken: createJwtToken(soonExp),
+        refreshToken: 'refresh-token'
+      };
+      const client = new SenseApiClient(session, { fetcher: mockFetch });
+
+      const newAccessToken = 'new-access-token';
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            access_token: newAccessToken,
+            refresh_token: 'new-refresh-token'
+          })
+      });
+
+      const result = await client['refreshAccessTokenIfNeeded']();
+
+      expect(result).toBe(newAccessToken);
+      expect(mockFetch).toHaveBeenCalled();
+    });
+  });
 });
