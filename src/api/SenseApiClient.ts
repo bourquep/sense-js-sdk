@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { EventEmitter } from '@/lib/EventEmitter';
+import { AuthenticationRequiresMfaResponse } from '@/types/AuthenticationRequiresMfaResponse';
+import { AuthenticationResponse } from '@/types/AuthenticationResponse';
 import { Device } from '@/types/Device';
 import { MonitorOverview } from '@/types/MonitorOverview';
 import { Session } from '@/types/Session';
@@ -117,6 +119,107 @@ export class SenseApiClient {
     this._fetcher = options?.fetcher ?? fetch;
     this._apiUrl = options?.apiUrl ?? 'https://api.sense.com/apiservice/api/v1';
     this._wssUrl = options?.wssUrl ?? 'wss://clientrt.sense.com';
+  }
+
+  /**
+   * Authenticates a user with the Sense API using email and password credentials.
+   *
+   * @remarks
+   * This method will:
+   *
+   * - Clear any existing session
+   * - Attempt to authenticate with the provided credentials
+   * - Handle MFA requirements if needed
+   * - Create a new session if authentication is successful
+   *
+   * If this method returns a value, it indicates that multi-factor authentication is required. In this case, the
+   * returned MFA token should be used to complete the authentication process using the {@link completeMfaLogin} method.
+   * @param emailAddress - The email address of the user attempting to authenticate.
+   * @param password - The password of the user attempting to authenticate.
+   * @returns A promise that resolves to an MFA token if multi-factor authentication is required, or undefined if
+   *   authentication is successful without MFA.
+   * @throws {@link SenseApiError} If authentication fails for reasons other than MFA being required.
+   */
+  async login(emailAddress: string, password: string): Promise<string | undefined> {
+    this.session = undefined;
+
+    const obfuscatedEmailAddress = emailAddress.replace(/(?<=.{2}).(?=[^@]*?.@)/g, '*');
+
+    this._logger.debug(`Initiating Sense authentication for ${obfuscatedEmailAddress}...`);
+
+    const response = await this._fetcher(`${this._apiUrl}/authenticate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        email: emailAddress,
+        password: password
+      })
+    });
+
+    const requiresMfa = response.status === 401;
+
+    if (!response.ok && !requiresMfa) {
+      this._logger.error('Unable to authenticate with Sense.', response.statusText);
+      throw new SenseApiError(response);
+    }
+
+    if (requiresMfa) {
+      this._logger.debug(`Sense authentication requires MFA for ${obfuscatedEmailAddress}.`);
+      const mfaResponse: AuthenticationRequiresMfaResponse = await response.json();
+      return mfaResponse.mfa_token;
+    }
+
+    this._logger.debug(`Sense authentication successful for ${obfuscatedEmailAddress}.`);
+    const authResponse: AuthenticationResponse = await response.json();
+
+    this.session = {
+      userId: authResponse.user_id,
+      monitorIds: authResponse.monitors.map((monitor) => monitor.id),
+      accessToken: authResponse.access_token,
+      refreshToken: authResponse.refresh_token
+    };
+  }
+
+  /**
+   * Completes a multi-factor authentication (MFA) login flow with the Sense API.
+   *
+   * @param mfaToken - The MFA token received from the initial login attempt.
+   * @param oneTimePassword - The one-time password (OTP) code for MFA verification.
+   * @param clientDate - The current date/time on the client device for time synchronization.
+   * @throws {@link SenseApiError} If the MFA authentication fails.
+   */
+  async completeMfaLogin(mfaToken: string, oneTimePassword: string, clientDate: Date) {
+    this._logger.debug('Completing MFA login...');
+
+    const response = await this._fetcher(`${this._apiUrl}/authenticate/mfa`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        totp: oneTimePassword,
+        mfa_token: mfaToken,
+        client_time: clientDate.toISOString()
+      })
+    });
+
+    if (!response.ok) {
+      this._logger.error('Unable to complete MFA login with Sense.', response.statusText);
+      throw new SenseApiError(response);
+    }
+
+    this._logger.debug('MFA login completed successfully.');
+
+    const authResponse: AuthenticationResponse = await response.json();
+
+    this.session = {
+      userId: authResponse.user_id,
+      monitorIds: authResponse.monitors.map((monitor) => monitor.id),
+      accessToken: authResponse.access_token,
+      refreshToken: authResponse.refresh_token
+    };
   }
 
   /**

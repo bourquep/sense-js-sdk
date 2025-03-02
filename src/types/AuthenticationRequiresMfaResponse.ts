@@ -16,14 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * Represents an authenticated user session. This is the object that must be persisted by the application in order to
- * maintain the user's authentication state. This object contains sensitive information that should not be exposed to
- * untrusted parties. It is recommended to store this object securely and only share it with trusted parties.
- */
-export interface Session {
-  userId: number;
-  monitorIds: number[];
-  accessToken: string;
-  refreshToken: string;
+/** Response object returned after authentication request that requires multi-factor authentication. */
+export interface AuthenticationRequiresMfaResponse {
+  mfa_token: string;
+  mfa_type: string;
+  status: 'mfa_required';
+  error_reason: string;
 }

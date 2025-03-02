@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 
 // Helper function to create a JWT token with specific expiration
-const createJwtToken = (expSeconds: number, userId: string = 'test-user') => {
+const createJwtToken = (expSeconds: number, userId: number = 123) => {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
   const payload = Buffer.from(JSON.stringify({ exp: expSeconds, userId })).toString('base64');
   const signature = 'dummy-signature';
@@ -25,7 +25,7 @@ describe('SenseApiClient constructor', () => {
   });
 
   it('should initialize itself with the session object', () => {
-    const session: Session = { userId: '123', accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
     const client = new SenseApiClient(session);
     expect(client).toBeDefined();
     expect(client.session).toEqual(session);
@@ -45,7 +45,8 @@ describe('SenseApiClient constructor options', () => {
   const customWssUrl = 'wss://custom-ws.sense.com';
 
   const session: Session = {
-    userId: '123',
+    userId: 123,
+    monitorIds: [456],
     accessToken: 'abc',
     refreshToken: 'def'
   };
@@ -191,7 +192,7 @@ describe('SenseApiClient.isAuthenticated', () => {
   });
 
   it('should return true if the session is set', () => {
-    const session: Session = { userId: '123', accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
     const client = new SenseApiClient(session);
     expect(client.isAuthenticated).toBe(true);
   });
@@ -199,7 +200,7 @@ describe('SenseApiClient.isAuthenticated', () => {
 
 describe('SenseApiClient.session', () => {
   it('should trigger the onSessionChange event when set', () => {
-    const session: Session = { userId: '123', accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
     const client = new SenseApiClient();
     const spy = vi.fn();
     client.emitter.on('sessionChanged', spy);
@@ -208,7 +209,7 @@ describe('SenseApiClient.session', () => {
   });
 
   it('should trigger the onSessionChange event when cleared', () => {
-    const session: Session = { userId: '123', accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
     const client = new SenseApiClient(session);
     const spy = vi.fn();
     client.emitter.on('sessionChanged', spy);
@@ -217,8 +218,8 @@ describe('SenseApiClient.session', () => {
   });
 
   it('should trigger the onSessionChange event when updated', () => {
-    const session1: Session = { userId: '123', accessToken: 'abc', refreshToken: 'def' };
-    const session2: Session = { userId: '456', accessToken: 'ghi', refreshToken: 'jkl' };
+    const session1: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
+    const session2: Session = { userId: 456, monitorIds: [789], accessToken: 'ghi', refreshToken: 'jkl' };
     const client = new SenseApiClient(session1);
     const spy = vi.fn();
     client.emitter.on('sessionChanged', spy);
@@ -227,7 +228,7 @@ describe('SenseApiClient.session', () => {
   });
 
   it('should not trigger the onSessionChange event when not updated', () => {
-    const session: Session = { userId: '123', accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
     const client = new SenseApiClient(session);
     const spy = vi.fn();
     client.emitter.on('sessionChanged', spy);
@@ -255,7 +256,8 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
 
     it('should throw UnauthenticatedError and clear session for invalid token format', async () => {
       const session: Session = {
-        userId: 'test-user',
+        userId: 123,
+        monitorIds: [456],
         accessToken: 'invalid-token',
         refreshToken: 'refresh-token'
       };
@@ -267,11 +269,12 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
 
     it('should throw UnauthenticatedError and clear session for token without expiration', async () => {
       const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
-      const payload = Buffer.from(JSON.stringify({ userId: 'test-user' })).toString('base64');
+      const payload = Buffer.from(JSON.stringify({ userId: 123 })).toString('base64');
       const token = `t1.v2.${header}.${payload}.signature`;
 
       const session: Session = {
-        userId: 'test-user',
+        userId: 123,
+        monitorIds: [456],
         accessToken: token,
         refreshToken: 'refresh-token'
       };
@@ -287,7 +290,8 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
       const token = `t1.v2.${header}.${payload}.signature`;
 
       const session: Session = {
-        userId: 'test-user',
+        userId: 123,
+        monitorIds: [456],
         accessToken: token,
         refreshToken: 'refresh-token'
       };
@@ -302,7 +306,8 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should not refresh token if it is not expiring soon', async () => {
       const futureExp = dayjs().add(1, 'hour').unix();
       const session: Session = {
-        userId: 'test-user',
+        userId: 123,
+        monitorIds: [456],
         accessToken: createJwtToken(futureExp),
         refreshToken: 'refresh-token'
       };
@@ -316,7 +321,8 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should refresh token if it is expiring soon', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const session: Session = {
-        userId: 'test-user',
+        userId: 123,
+        monitorIds: [456],
         accessToken: createJwtToken(soonExp),
         refreshToken: 'refresh-token'
       };
@@ -342,18 +348,19 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
       });
 
       const body = mockFetch.mock.calls[0][1].body;
-      expect(body.get('user_id')).toBe('test-user');
+      expect(body.get('user_id')).toBe('123');
       expect(body.get('refresh_token')).toBe('refresh-token');
     });
 
     it('should handle non-prefixed JWT tokens', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
-      const payload = Buffer.from(JSON.stringify({ exp: soonExp, userId: 'test-user' })).toString('base64');
+      const payload = Buffer.from(JSON.stringify({ exp: soonExp, userId: 123 })).toString('base64');
       const token = `${header}.${payload}.signature`;
 
       const session: Session = {
-        userId: 'test-user',
+        userId: 123,
+        monitorIds: [456],
         accessToken: token,
         refreshToken: 'refresh-token'
       };
@@ -375,7 +382,8 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should throw SenseApiError when refresh request fails', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const session: Session = {
-        userId: 'test-user',
+        userId: 123,
+        monitorIds: [456],
         accessToken: createJwtToken(soonExp),
         refreshToken: 'refresh-token'
       };
@@ -393,7 +401,8 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should update session with new tokens after successful refresh', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const session: Session = {
-        userId: 'test-user',
+        userId: 123,
+        monitorIds: [456],
         accessToken: createJwtToken(soonExp),
         refreshToken: 'refresh-token'
       };
@@ -428,7 +437,8 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
       const futureExp = dayjs().add(1, 'hour').unix();
       const existingToken = createJwtToken(futureExp);
       const session: Session = {
-        userId: 'test-user',
+        userId: 123,
+        monitorIds: [456],
         accessToken: existingToken,
         refreshToken: 'refresh-token'
       };
@@ -443,7 +453,8 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should return the new access token after successful refresh', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const session: Session = {
-        userId: 'test-user',
+        userId: 123,
+        monitorIds: [456],
         accessToken: createJwtToken(soonExp),
         refreshToken: 'refresh-token'
       };
@@ -471,7 +482,8 @@ describe('SenseApiClient.getMonitorOverview', () => {
   const mockFetch = vi.fn();
   const monitorId = 'test-monitor-id';
   const validSession: Session = {
-    userId: 'test-user',
+    userId: 123,
+    monitorIds: [456],
     accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
     refreshToken: 'refresh-token'
   };
@@ -523,7 +535,8 @@ describe('SenseApiClient.getMonitorDevices', () => {
   const mockFetch = vi.fn();
   const monitorId = 'test-monitor-id';
   const validSession: Session = {
-    userId: 'test-user',
+    userId: 123,
+    monitorIds: [456],
     accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
     refreshToken: 'refresh-token'
   };
@@ -576,7 +589,8 @@ describe('SenseApiClient.getMonitorTrends', () => {
   const monitorId = 'test-monitor-id';
   const timezone = 'America/New_York';
   const validSession: Session = {
-    userId: 'test-user',
+    userId: 123,
+    monitorIds: [456],
     accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
     refreshToken: 'refresh-token'
   };
