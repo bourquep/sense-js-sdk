@@ -7,6 +7,11 @@ A JavaScript SDK for accessing the Sense Energy Monitor API.
 This SDK provides a simple and intuitive way to interact with the Sense Energy Monitor API, allowing developers to
 easily retrieve and manipulate data from their Sense Energy Monitor devices.
 
+## Disclaimer
+
+This SDK was developed without the consent of the Sense company, and makes use of an undocumented and unsupported
+API. Use at your own risk, and be aware that Sense may change the API at any time and break this repository perminantly.
+
 ## Installation
 
 ### Prerequisites
