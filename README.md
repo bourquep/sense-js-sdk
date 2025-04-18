@@ -43,10 +43,9 @@ import { SenseApiClient } from '@bourquep/sense-js-sdk';
 const client = new SenseApiClient();
 
 // Login with your Sense credentials
-await client.login('your-email@example.com', 'your-password');
+const mfaToken = await client.login('your-email@example.com', 'your-password');
 
 // If MFA is required, you'll receive an MFA token
-const mfaToken = await client.login('your-email@example.com', 'your-password');
 if (mfaToken) {
   // Complete login with MFA code
   await client.completeMfaLogin(mfaToken, '123456', new Date());
