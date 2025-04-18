@@ -16,8 +16,8 @@ Use at your own risk, and be aware that Sense may change the API at any time and
 
 ### Prerequisites
 
-* You must own a [Sense Energy Monitor](https://sense.com) device or have credentials to access a working monitor.
-* Node.js version 22.4.0 or higher.
+- You must own a [Sense Energy Monitor](https://sense.com) device or have credentials to access a working monitor.
+- Node.js version 22.4.0 or higher.
 
 ```bash
 # Using npm
