@@ -21,13 +21,13 @@ Use at your own risk, and be aware that Sense may change the API at any time and
 
 ```bash
 # Using npm
-npm install @bourquep/sense-js-sdk
+npm install sense-js-sdk
 
 # Using yarn
-yarn add @bourquep/sense-js-sdk
+yarn add sense-js-sdk
 
 # Using pnpm
-pnpm add @bourquep/sense-js-sdk
+pnpm add sense-js-sdk
 ```
 
 ## Using
@@ -37,7 +37,7 @@ The Sense SDK provides a simple interface to interact with the Sense Energy Moni
 ### Basic Authentication
 
 ```typescript
-import { SenseApiClient } from '@bourquep/sense-js-sdk';
+import { SenseApiClient } from 'sense-js-sdk';
 
 // Create a new client
 const client = new SenseApiClient();
@@ -111,7 +111,7 @@ await client.stopRealtimeUpdates();
 The SDK provides specific error types to handle API errors:
 
 ```typescript
-import { SenseApiError, UnauthenticatedError } from '@bourquep/sense-js-sdk';
+import { SenseApiError, UnauthenticatedError } from 'sense-js-sdk';
 
 try {
   const overview = await client.getMonitorOverview(monitorId);
@@ -133,7 +133,7 @@ try {
 You can customize the client with various options:
 
 ```typescript
-import { SenseApiClient, Logger } from '@bourquep/sense-js-sdk';
+import { SenseApiClient, Logger } from 'sense-js-sdk';
 
 // Custom logger implementation
 class CustomLogger implements Logger {
