@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { RealtimePayload } from '@/types/RealtimePayload';
 import { Session } from '@/types/Session';
 
 /** Defines the event types for the SenseApiClient. */
@@ -28,4 +29,12 @@ export type SenseApiClientEventTypes = {
    * @param session - The new session object or undefined if session was cleared.
    */
   sessionChanged: [session: Session | undefined];
+
+  /**
+   * Event emitted when a real-time update is received.
+   *
+   * @param monitorId - The ID of the monitor that sent the update.
+   * @param payload - The real-time update payload.
+   */
+  realtimeUpdate: [monitorId: number, payload: RealtimePayload];
 };

@@ -21,6 +21,7 @@ import { AuthenticationRequiresMfaResponse } from '@/types/AuthenticationRequire
 import { AuthenticationResponse } from '@/types/AuthenticationResponse';
 import { Device } from '@/types/Device';
 import { MonitorOverview } from '@/types/MonitorOverview';
+import { RealtimePayload } from '@/types/RealtimePayload';
 import { Session } from '@/types/Session';
 import { Trends } from '@/types/Trends';
 import { TrendScale } from '@/types/TrendScale';
@@ -59,6 +60,15 @@ export class SenseApiClient {
 
   /** The base URL for the Sense WebSocket API. */
   private _wssUrl: string;
+
+  /** The WebSocket instance used for real-time updates. */
+  private _socket?: WebSocket;
+
+  /** Whether the WebSocket is currently connecting. */
+  private _socketIsConnecting = false;
+
+  /** Whether the WebSocket should automatically reconnect. */
+  private _autoReconnectSocket: boolean;
 
   /**
    * Event emitter for client events.
@@ -109,6 +119,7 @@ export class SenseApiClient {
     this._fetcher = options?.fetcher ?? fetch;
     this._apiUrl = options?.apiUrl ?? 'https://api.sense.com/apiservice/api/v1';
     this._wssUrl = options?.wssUrl ?? 'wss://clientrt.sense.com';
+    this._autoReconnectSocket = options?.autoReconnectRealtimeUpdates ?? true;
   }
 
   /**
@@ -296,6 +307,65 @@ export class SenseApiClient {
     }
 
     return response.json();
+  }
+
+  /**
+   * Starts real-time updates for a monitor.
+   *
+   * @param monitorId - The ID of the monitor to start real-time updates for.
+   * @throws {@link UnauthenticatedError} If there is no valid session.
+   */
+  async startRealtimeUpdates(monitorId: number) {
+    if (this._socket || this._socketIsConnecting) {
+      this._logger.warn('Real-time updates already started.');
+      return;
+    }
+
+    this._logger.info('Starting real-time updates...');
+
+    const accessToken = await this.refreshAccessTokenIfNeeded();
+
+    this._socketIsConnecting = true;
+
+    const url = new URL(`${this._wssUrl}/monitors/${monitorId}/realtimefeed`);
+    url.searchParams.append('access_token', accessToken);
+
+    this._socket = new WebSocket(url);
+
+    this._socket.addEventListener('open', () => {
+      this._logger.debug('Connected to WebSocket server');
+      this._socketIsConnecting = false;
+    });
+
+    this._socket.addEventListener('message', (event) => {
+      const data: RealtimePayload = JSON.parse(event.data);
+      this.emitter.emit('realtimeUpdate', monitorId, data);
+    });
+
+    this._socket.addEventListener('error', (event) => {
+      this._logger.warn('WebSocket error:', event);
+    });
+
+    this._socket.addEventListener('close', () => {
+      this._logger.debug('Disconnected from WebSocket server');
+      this._socket = undefined;
+      this._socketIsConnecting = false;
+
+      if (this._autoReconnectSocket) {
+        this._logger.debug('Reconnecting...');
+        this.startRealtimeUpdates(monitorId);
+      }
+    });
+  }
+
+  /** Stops real-time updates. */
+  async stopRealtimeUpdates() {
+    if (this._socket) {
+      this._logger.debug('Stopping real-time updates...');
+      this._socket.close();
+      this._socket = undefined;
+      this._socketIsConnecting = false;
+    }
   }
 
   /**

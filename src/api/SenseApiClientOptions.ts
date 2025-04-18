@@ -51,4 +51,11 @@ export interface SenseApiClientOptions {
    * @defaultValue `wss://clientrt.sense.com`
    */
   wssUrl?: string;
+
+  /**
+   * Whether to automatically reconnect to the real-time WebSocket API when the connection is lost.
+   *
+   * @defaultValue `true`
+   */
+  autoReconnectRealtimeUpdates?: boolean;
 }
