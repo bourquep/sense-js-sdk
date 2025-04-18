@@ -10,8 +10,7 @@ easily retrieve and manipulate data from their Sense Energy Monitor devices.
 ## Disclaimer
 
 This SDK was developed without the consent of the Sense company, and makes use of an undocumented and unsupported API.
-Use at your own risk, and be aware that Sense may change the API at any time and break this repository perminantly.
-
+Use at your own risk, and be aware that Sense may change the API at any time and break this repository permanently.
 ## Installation
 
 ### Prerequisites
@@ -121,7 +120,7 @@ try {
     console.error('Session expired, please login again');
     // Handle re-authentication
   } else if (error instanceof SenseApiError) {
-    console.error('API error:', error.message, error.statusCode);
+    console.error('API error:', error.message, error.status);
     // Handle API errors
   } else {
     console.error('Unexpected error:', error);
