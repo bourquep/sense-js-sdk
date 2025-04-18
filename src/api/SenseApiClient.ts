@@ -31,6 +31,7 @@ import utc from 'dayjs/plugin/utc';
 import isEqual from 'lodash/isEqual';
 import { SenseApiError, UnauthenticatedError } from './Errors';
 import { Logger, VoidLogger } from './Logger';
+import { SenseApiClientEventTypes } from './SenseApiClientEventTypes';
 import { SenseApiClientOptions } from './SenseApiClientOptions';
 
 dayjs.extend(utc);
@@ -40,18 +41,6 @@ dayjs.extend(updateLocale);
 dayjs.updateLocale('en', {
   weekStart: 1 // Monday is the first day of the week.
 });
-
-/** Defines the event types for the SenseApiClient. */
-export type SenseApiClientEventTypes = {
-  /**
-   * Event emitted when the session changes.
-   *
-   * @remarks
-   * You should subscribe to this event and persist the session object whenever it changes.
-   * @param session - The new session object or undefined if session was cleared.
-   */
-  sessionChanged: [session: Session | undefined];
-};
 
 /** A client for interacting with the Sense API. */
 export class SenseApiClient {
