@@ -72,5 +72,103 @@ describe.runIf(runTests)('SenseApiClient E2E', () => {
 
       expect(trends).toBeDefined();
     });
+
+    it('should connect to realtime updates and receive messages', async () => {
+      const monitorId = client.session!.monitorIds[0];
+      let receivedUpdate = false;
+
+      // Listen for realtime updates
+      client.emitter.on('realtimeUpdate', (id, data) => {
+        expect(id).toBe(monitorId);
+        expect(data).toBeDefined();
+        receivedUpdate = true;
+      });
+
+      // Start realtime updates
+      await client.startRealtimeUpdates(monitorId);
+
+      // Wait for updates - realtime data typically arrives within a few seconds
+      await new Promise<void>((resolve) => {
+        const timeoutId = setTimeout(() => {
+          // Timeout after 15 seconds
+          client.stopRealtimeUpdates();
+          resolve();
+        }, 15000);
+
+        const checkInterval = setInterval(() => {
+          if (receivedUpdate) {
+            clearTimeout(timeoutId);
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 500);
+      });
+
+      // Stop the realtime updates
+      await client.stopRealtimeUpdates();
+
+      // Verify we received at least one update
+      expect(receivedUpdate).toBe(true);
+    }, 20000); // Increase timeout to 20 seconds
+
+    it('should be able to stop realtime updates', async () => {
+      const monitorId = client.session!.monitorIds[0];
+
+      // Start realtime updates
+      await client.startRealtimeUpdates(monitorId);
+
+      // Ensure WebSocket is connected
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Stop the realtime updates
+      await client.stopRealtimeUpdates();
+
+      // Verify the connection is closed by attempting to start another one
+      let secondConnectionStarted = false;
+
+      client.emitter.on('realtimeUpdate', () => {
+        secondConnectionStarted = true;
+      });
+
+      await client.startRealtimeUpdates(monitorId);
+
+      // Wait a short time for a potential update to arrive
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      // Stop the second connection
+      await client.stopRealtimeUpdates();
+
+      // We expect to have successfully established a new connection after stopping the first one
+      expect(secondConnectionStarted).toBe(true);
+    }, 15000);
+
+    it('should handle multiple calls to startRealtimeUpdates gracefully', async () => {
+      const monitorId = client.session!.monitorIds[0];
+
+      // Start realtime updates
+      await client.startRealtimeUpdates(monitorId);
+
+      // Try to start again without stopping - this should not throw an error
+      await client.startRealtimeUpdates(monitorId);
+
+      // Stop realtime updates
+      await client.stopRealtimeUpdates();
+    }, 10000);
+
+    it('should handle multiple calls to stopRealtimeUpdates gracefully', async () => {
+      // Call stop without starting first - should not throw
+      await client.stopRealtimeUpdates();
+
+      const monitorId = client.session!.monitorIds[0];
+
+      // Start and then stop multiple times
+      await client.startRealtimeUpdates(monitorId);
+      await client.stopRealtimeUpdates();
+      await client.stopRealtimeUpdates(); // Second stop should be a no-op
+
+      // Should still be able to start again
+      await client.startRealtimeUpdates(monitorId);
+      await client.stopRealtimeUpdates();
+    }, 10000);
   });
 });
