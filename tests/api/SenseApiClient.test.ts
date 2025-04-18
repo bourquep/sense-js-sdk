@@ -6,8 +6,10 @@ import { MonitorOverview } from '@/types/MonitorOverview';
 import { Session } from '@/types/Session';
 import { Trends } from '@/types/Trends';
 import dayjs from 'dayjs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Helper function to create a JWT token with specific expiration
 const createJwtToken = (expSeconds: number, userId: number = 123) => {
@@ -59,6 +61,7 @@ describe('SenseApiClient constructor options', () => {
       expect(client['_fetcher']).toBe(fetch);
       expect(client['_apiUrl']).toBe('https://api.sense.com/apiservice/api/v1');
       expect(client['_wssUrl']).toBe('wss://clientrt.sense.com');
+      expect(client['_autoReconnectSocket']).toBe(true);
     });
 
     it('should use default values with only session provided', () => {
@@ -68,6 +71,7 @@ describe('SenseApiClient constructor options', () => {
       expect(client['_fetcher']).toBe(fetch);
       expect(client['_apiUrl']).toBe('https://api.sense.com/apiservice/api/v1');
       expect(client['_wssUrl']).toBe('wss://clientrt.sense.com');
+      expect(client['_autoReconnectSocket']).toBe(true);
     });
   });
 
@@ -79,6 +83,7 @@ describe('SenseApiClient constructor options', () => {
       expect(client['_fetcher']).toBe(fetch);
       expect(client['_apiUrl']).toBe('https://api.sense.com/apiservice/api/v1');
       expect(client['_wssUrl']).toBe('wss://clientrt.sense.com');
+      expect(client['_autoReconnectSocket']).toBe(true);
     });
 
     it('should use custom fetcher when provided', () => {
@@ -87,6 +92,7 @@ describe('SenseApiClient constructor options', () => {
       expect(client['_fetcher']).toBe(mockFetcher);
       expect(client['_apiUrl']).toBe('https://api.sense.com/apiservice/api/v1');
       expect(client['_wssUrl']).toBe('wss://clientrt.sense.com');
+      expect(client['_autoReconnectSocket']).toBe(true);
     });
 
     it('should use custom apiUrl when provided', () => {
@@ -95,6 +101,7 @@ describe('SenseApiClient constructor options', () => {
       expect(client['_fetcher']).toBe(fetch);
       expect(client['_apiUrl']).toBe(customApiUrl);
       expect(client['_wssUrl']).toBe('wss://clientrt.sense.com');
+      expect(client['_autoReconnectSocket']).toBe(true);
     });
 
     it('should use custom wssUrl when provided', () => {
@@ -103,6 +110,16 @@ describe('SenseApiClient constructor options', () => {
       expect(client['_fetcher']).toBe(fetch);
       expect(client['_apiUrl']).toBe('https://api.sense.com/apiservice/api/v1');
       expect(client['_wssUrl']).toBe(customWssUrl);
+      expect(client['_autoReconnectSocket']).toBe(true);
+    });
+
+    it('should use autoReconnectSocket when provided', () => {
+      const client = new SenseApiClient(undefined, { autoReconnectRealtimeUpdates: false });
+      expect(client['_logger']).toBeDefined();
+      expect(client['_fetcher']).toBe(fetch);
+      expect(client['_apiUrl']).toBe('https://api.sense.com/apiservice/api/v1');
+      expect(client['_wssUrl']).toBe('wss://clientrt.sense.com');
+      expect(client['_autoReconnectSocket']).toBe(false);
     });
   });
 
@@ -113,13 +130,15 @@ describe('SenseApiClient constructor options', () => {
         logger: mockLogger,
         fetcher: mockFetcher,
         apiUrl: customApiUrl,
-        wssUrl: customWssUrl
+        wssUrl: customWssUrl,
+        autoReconnectRealtimeUpdates: false
       });
       expect(client.session).toEqual(session);
       expect(client['_logger']).toBe(mockLogger);
       expect(client['_fetcher']).toBe(mockFetcher);
       expect(client['_apiUrl']).toBe(customApiUrl);
       expect(client['_wssUrl']).toBe(customWssUrl);
+      expect(client['_autoReconnectSocket']).toBe(false);
     });
 
     it('should handle logger and fetcher combination', () => {
@@ -131,6 +150,7 @@ describe('SenseApiClient constructor options', () => {
       expect(client['_fetcher']).toBe(mockFetcher);
       expect(client['_apiUrl']).toBe('https://api.sense.com/apiservice/api/v1');
       expect(client['_wssUrl']).toBe('wss://clientrt.sense.com');
+      expect(client['_autoReconnectSocket']).toBe(true);
     });
 
     it('should handle apiUrl and wssUrl combination', () => {
@@ -142,6 +162,7 @@ describe('SenseApiClient constructor options', () => {
       expect(client['_fetcher']).toBe(fetch);
       expect(client['_apiUrl']).toBe(customApiUrl);
       expect(client['_wssUrl']).toBe(customWssUrl);
+      expect(client['_autoReconnectSocket']).toBe(true);
     });
 
     it('should handle logger and URLs combination', () => {
@@ -154,6 +175,7 @@ describe('SenseApiClient constructor options', () => {
       expect(client['_fetcher']).toBe(fetch);
       expect(client['_apiUrl']).toBe(customApiUrl);
       expect(client['_wssUrl']).toBe(customWssUrl);
+      expect(client['_autoReconnectSocket']).toBe(true);
     });
 
     it('should handle fetcher and URLs combination', () => {
@@ -166,6 +188,7 @@ describe('SenseApiClient constructor options', () => {
       expect(client['_fetcher']).toBe(mockFetcher);
       expect(client['_apiUrl']).toBe(customApiUrl);
       expect(client['_wssUrl']).toBe(customWssUrl);
+      expect(client['_autoReconnectSocket']).toBe(true);
     });
   });
 
@@ -181,6 +204,7 @@ describe('SenseApiClient constructor options', () => {
       expect(client['_fetcher']).toBe(fetch);
       expect(client['_apiUrl']).toBe(customApiUrl);
       expect(client['_wssUrl']).toBe('wss://clientrt.sense.com');
+      expect(client['_autoReconnectSocket']).toBe(true);
     });
   });
 });
@@ -913,5 +937,272 @@ describe('SenseApiClient.getMonitorTrends', () => {
 
     const url = new URL(mockFetch.mock.calls[0][0]);
     expect(url.searchParams.get('scale')).toBe('WEEK');
+  });
+});
+
+describe('SenseApiClient.startRealtimeUpdates', () => {
+  const mockFetch = vi.fn();
+  const monitorId = 456;
+  const validSession: Session = {
+    userId: 123,
+    monitorIds: [456],
+    accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
+    refreshToken: 'refresh-token'
+  };
+
+  // Mock WebSocket implementation
+  let mockWebSocket: {
+    instance: any;
+    addEventListener: any;
+    close: any;
+  };
+
+  // Store original WebSocket
+  const originalWebSocket = global.WebSocket;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockReset();
+
+    // Setup WebSocket mock
+    mockWebSocket = {
+      instance: null,
+      addEventListener: vi.fn(),
+      close: vi.fn()
+    };
+
+    // Mock global WebSocket
+    global.WebSocket = vi.fn().mockImplementation((url) => {
+      mockWebSocket.instance = {
+        url,
+        addEventListener: mockWebSocket.addEventListener,
+        close: mockWebSocket.close
+      };
+      return mockWebSocket.instance;
+    }) as any;
+  });
+
+  afterEach(() => {
+    // Restore original WebSocket
+    global.WebSocket = originalWebSocket;
+  });
+
+  it('should establish WebSocket connection with correct URL and token', async () => {
+    const client = new SenseApiClient(validSession, { fetcher: mockFetch });
+
+    await client.startRealtimeUpdates(monitorId);
+
+    // Verify WebSocket was created with correct URL
+    expect(global.WebSocket).toHaveBeenCalledTimes(1);
+    const wsUrl = new URL((global.WebSocket as any).mock.calls[0][0]);
+    expect(wsUrl.toString()).toContain(`wss://clientrt.sense.com/monitors/${monitorId}/realtimefeed`);
+    expect(wsUrl.searchParams.keys()).toContain('access_token');
+    expect(wsUrl.searchParams.get('access_token')).toBe(validSession.accessToken);
+
+    // Verify internal state
+    expect(client['_socketIsConnecting']).toBe(true);
+    expect(client['_socket']).toBeDefined();
+  });
+
+  it('should add event listeners to WebSocket', async () => {
+    const client = new SenseApiClient(validSession, { fetcher: mockFetch });
+
+    await client.startRealtimeUpdates(monitorId);
+
+    // Verify event listeners were added
+    expect(mockWebSocket.addEventListener).toHaveBeenCalledWith('open', expect.any(Function));
+    expect(mockWebSocket.addEventListener).toHaveBeenCalledWith('message', expect.any(Function));
+    expect(mockWebSocket.addEventListener).toHaveBeenCalledWith('error', expect.any(Function));
+    expect(mockWebSocket.addEventListener).toHaveBeenCalledWith('close', expect.any(Function));
+  });
+
+  it('should not create new connection if already connecting', async () => {
+    const client = new SenseApiClient(validSession, { fetcher: mockFetch });
+
+    // Set connecting state
+    client['_socketIsConnecting'] = true;
+
+    await client.startRealtimeUpdates(monitorId);
+
+    // WebSocket should not be created
+    expect(global.WebSocket).not.toHaveBeenCalled();
+  });
+
+  it('should not create new connection if already connected', async () => {
+    const client = new SenseApiClient(validSession, { fetcher: mockFetch });
+
+    // Set socket
+    client['_socket'] = {} as WebSocket;
+
+    await client.startRealtimeUpdates(monitorId);
+
+    // WebSocket should not be created
+    expect(global.WebSocket).not.toHaveBeenCalled();
+  });
+
+  it('should emit realtimeUpdate event when receiving messages', async () => {
+    const client = new SenseApiClient(validSession, { fetcher: mockFetch });
+    const emitSpy = vi.spyOn(client.emitter, 'emit');
+
+    await client.startRealtimeUpdates(monitorId);
+
+    // Find message handler
+    const messageHandler = mockWebSocket.addEventListener.mock.calls.find((call: string[]) => call[0] === 'message')[1];
+
+    // Simulate receiving message
+    const mockPayload = { power: 1000, devices: [] };
+    messageHandler({ data: JSON.stringify(mockPayload) });
+
+    // Verify event was emitted
+    expect(emitSpy).toHaveBeenCalledWith('realtimeUpdate', monitorId, mockPayload);
+  });
+
+  it('should update internal state when connection opens', async () => {
+    const client = new SenseApiClient(validSession, { fetcher: mockFetch });
+
+    await client.startRealtimeUpdates(monitorId);
+
+    // Find open handler
+    const openHandler = mockWebSocket.addEventListener.mock.calls.find((call: string[]) => call[0] === 'open')[1];
+
+    // Set connecting state
+    client['_socketIsConnecting'] = true;
+
+    // Simulate connection open
+    openHandler({});
+
+    // Verify internal state updated
+    expect(client['_socketIsConnecting']).toBe(false);
+  });
+
+  it('should handle connection close correctly', async () => {
+    const client = new SenseApiClient(validSession, { fetcher: mockFetch });
+    const startSpy = vi.spyOn(client, 'startRealtimeUpdates');
+
+    await client.startRealtimeUpdates(monitorId);
+    startSpy.mockClear(); // Clear initial call
+
+    // Find close handler
+    const closeHandler = mockWebSocket.addEventListener.mock.calls.find((call: string[]) => call[0] === 'close')[1];
+
+    // Simulate connection close
+    closeHandler({});
+
+    // Verify internal state updated
+    expect(client['_socket']).toBeUndefined();
+    expect(client['_socketIsConnecting']).toBe(false);
+
+    // Should automatically reconnect
+    expect(startSpy).toHaveBeenCalledWith(monitorId);
+  });
+
+  it('should not reconnect when autoReconnect is disabled', async () => {
+    const client = new SenseApiClient(validSession, {
+      fetcher: mockFetch,
+      autoReconnectRealtimeUpdates: false
+    });
+    const startSpy = vi.spyOn(client, 'startRealtimeUpdates');
+
+    await client.startRealtimeUpdates(monitorId);
+    startSpy.mockClear(); // Clear initial call
+
+    // Find close handler
+    const closeHandler = mockWebSocket.addEventListener.mock.calls.find((call: string[]) => call[0] === 'close')[1];
+
+    // Simulate connection close
+    closeHandler({});
+
+    // Should not reconnect
+    expect(startSpy).not.toHaveBeenCalled();
+  });
+
+  it('should refresh token if needed before connecting', async () => {
+    // Create session with soon-to-expire token
+    const expiringSession: Session = {
+      userId: 123,
+      monitorIds: [456],
+      accessToken: createJwtToken(dayjs().add(5, 'minutes').unix()),
+      refreshToken: 'refresh-token'
+    };
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          access_token: 'new-access-token',
+          refresh_token: 'new-refresh-token'
+        })
+    });
+
+    const client = new SenseApiClient(expiringSession, { fetcher: mockFetch });
+
+    await client.startRealtimeUpdates(monitorId);
+
+    // Verify token was refreshed
+    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('/renew'), expect.any(Object));
+
+    // Verify WebSocket was created with new token
+    const wsUrl = new URL((global.WebSocket as any).mock.calls[0][0]);
+    expect(wsUrl.searchParams.keys()).toContain('access_token');
+    expect(wsUrl.searchParams.get('access_token')).toBe('new-access-token');
+  });
+
+  it('should throw UnauthenticatedError when no session exists', async () => {
+    const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+
+    await expect(client.startRealtimeUpdates(monitorId)).rejects.toThrow(UnauthenticatedError);
+    expect(global.WebSocket).not.toHaveBeenCalled();
+  });
+});
+
+describe('SenseApiClient.stopRealtimeUpdates', () => {
+  // Store original WebSocket
+  const originalWebSocket = global.WebSocket;
+
+  let mockSocket: {
+    close: any;
+  };
+
+  beforeEach(() => {
+    mockSocket = {
+      close: vi.fn()
+    };
+
+    // Mock global WebSocket
+    global.WebSocket = vi.fn().mockImplementation(() => {
+      return mockSocket as any;
+    }) as any;
+  });
+
+  afterEach(() => {
+    // Restore original WebSocket
+    global.WebSocket = originalWebSocket;
+  });
+
+  it('should close WebSocket connection if open', async () => {
+    const client = new SenseApiClient();
+
+    // Set socket
+    client['_socket'] = mockSocket as any;
+    client['_socketIsConnecting'] = true;
+
+    await client.stopRealtimeUpdates();
+
+    // Verify socket was closed
+    expect(mockSocket.close).toHaveBeenCalled();
+    expect(client['_socket']).toBeUndefined();
+    expect(client['_socketIsConnecting']).toBe(false);
+  });
+
+  it('should do nothing if no connection exists', async () => {
+    const client = new SenseApiClient();
+
+    // Ensure no socket
+    client['_socket'] = undefined;
+
+    await client.stopRealtimeUpdates();
+
+    // Should not error
+    expect(mockSocket.close).not.toHaveBeenCalled();
   });
 });
