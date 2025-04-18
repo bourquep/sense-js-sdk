@@ -38,6 +38,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(updateLocale);
 
+// TODO: Why is this needed?
 dayjs.updateLocale('en', {
   weekStart: 1 // Monday is the first day of the week.
 });
