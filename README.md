@@ -1,5 +1,9 @@
 # Sense Energy Monitor JavaScript SDK
 
+[![NPM Version](https://img.shields.io/npm/v/sense-js-sdk)](https://www.npmjs.com/package/sense-js-sdk)
+[![CodeQL](https://github.com/bourquep/sense-js-sdk/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/bourquep/sense-js-sdk/actions/workflows/github-code-scanning/codeql)
+[![CI: lint, build and release](https://github.com/bourquep/sense-js-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/bourquep/sense-js-sdk/actions/workflows/ci.yml)
+
 A JavaScript SDK for accessing the Sense Energy Monitor API.
 
 ## Description
