@@ -10,6 +10,9 @@
     "sdk",
     "api"
   ],
+  "publishConfig": {
+    "provenance": true
+  },
   "author": {
     "name": "Pascal Bourque",
     "email": "pascal@cosmos.moi"
