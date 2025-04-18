@@ -2,7 +2,7 @@ name: 'CI: lint, build and release'
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
