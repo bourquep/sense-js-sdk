@@ -6,5 +6,6 @@ module.exports = {
   singleQuote: true,
   trailingComma: 'none',
   arrowParens: 'always',
-  plugins: ['prettier-plugin-organize-imports']
+  tsdoc: true,
+  plugins: ['prettier-plugin-organize-imports', 'prettier-plugin-jsdoc']
 };
