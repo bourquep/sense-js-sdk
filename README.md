@@ -11,6 +11,7 @@ easily retrieve and manipulate data from their Sense Energy Monitor devices.
 
 This SDK was developed without the consent of the Sense company, and makes use of an undocumented and unsupported API.
 Use at your own risk, and be aware that Sense may change the API at any time and break this repository permanently.
+
 ## Installation
 
 ### Prerequisites
