@@ -165,6 +165,11 @@ const client = new SenseApiClient(undefined, {
 });
 ```
 
+### Reference documentation
+
+The complete reference documentation for the `sense-js-sdk` library can be found at
+[https://bourquep.github.io/sense-js-sdk/](https://bourquep.github.io/sense-js-sdk/).
+
 ## Contributing
 
 If you want to contribute to this project, please read the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines.

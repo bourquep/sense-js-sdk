@@ -44,4 +44,5 @@ export * from './types/RealtimeUpdatePayload';
 export * from './api/Errors';
 export * from './api/Logger';
 export * from './api/SenseApiClient';
+export * from './api/SenseApiClientEventTypes';
 export * from './api/SenseApiClientOptions';
