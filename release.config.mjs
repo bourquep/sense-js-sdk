@@ -1,13 +1,6 @@
 /** @type {import('semantic-release').GlobalConfig} */
 const semanticReleaseConfig = {
-  branches: [
-    'main',
-    {
-      name: 'alpha',
-      channel: 'alpha',
-      prerelease: true
-    }
-  ],
+  branches: ['main'],
   plugins: [
     [
       '@semantic-release/commit-analyzer',
