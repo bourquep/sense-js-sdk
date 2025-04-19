@@ -176,9 +176,10 @@ If you want to contribute to this project, please read the [CONTRIBUTING.md](CON
 
 ## License
 
-`sense-js-sdk` is licensed under the GNU Public License v3. This means you are free to use, modify and redistribute this
-software, provided that any derivative works you create are also licensed under GPL v3 and make their source code
-available. The GPL v3 ensures that this software and any modifications remain free and open source.
+`sense-js-sdk` is licensed under the MIT License. This is a permissive license that allows you to use, modify, and
+redistribute this software in both private and commercial projects. You can change the code and distribute your changes
+without being required to release your source code. The MIT License only requires that you include the original
+copyright notice and license text in any copy of the software or substantial portion of it.
 
 ## Copyright
 
