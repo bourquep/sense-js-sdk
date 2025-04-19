@@ -1,7 +1,7 @@
 {
   "name": "sense-js-sdk",
   "version": "0.0.0",
-  "license": "GPL-3.0",
+  "license": "MIT",
   "private": false,
   "description": "A JavaScript SDK for accessing the Sense Energy Monitor API.",
   "keywords": [
