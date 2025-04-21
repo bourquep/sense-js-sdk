@@ -22,6 +22,7 @@ SOFTWARE.
 */
 
 import { SenseApiClient } from '@/api/SenseApiClient';
+import { SenseApiError, UnauthenticatedError } from '@/index';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 // Only run these tests if credentials are provided
@@ -42,6 +43,24 @@ describe.runIf(runTests)('SenseApiClient E2E', () => {
     expect(mfaToken!.length).toBeGreaterThan(0);
     await client.completeMfaLogin(mfaToken!, mfaCode!, new Date());
     expect(client.isAuthenticated).toBe(true);
+  });
+
+  describe('Unauthenticated API Calls', () => {
+    it('should throw for invalid username', async () => {
+      client = new SenseApiClient();
+      await expect(client.login('invalid@example.com', password!)).rejects.toThrow(SenseApiError);
+    });
+
+    it('should throw for invalid password', async () => {
+      client = new SenseApiClient();
+      await expect(client.login(email!, 'invalid')).rejects.toThrow(SenseApiError);
+    });
+
+    it('should fail to get monitor overview', async () => {
+      client = new SenseApiClient();
+      const monitorId = 123;
+      await expect(client.getMonitorOverview(monitorId)).rejects.toThrow(UnauthenticatedError);
+    });
   });
 
   describe('Authenticated API Calls', () => {

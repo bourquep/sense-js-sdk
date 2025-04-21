@@ -22,7 +22,7 @@ SOFTWARE.
 */
 
 import { EventEmitter } from '@/lib/EventEmitter';
-import { AuthenticationRequiresMfaResponse } from '@/types/AuthenticationRequiresMfaResponse';
+import { AuthenticationFailedResponse } from '@/types/AuthenticationFailedResponse';
 import { AuthenticationResponse } from '@/types/AuthenticationResponse';
 import { Device } from '@/types/Device';
 import { MonitorOverview } from '@/types/MonitorOverview';
@@ -164,17 +164,25 @@ export class SenseApiClient {
       })
     });
 
-    const requiresMfa = response.status === 401;
+    if (response.status === 401) {
+      const failedResponse: AuthenticationFailedResponse = await response.json();
 
-    if (!response.ok && !requiresMfa) {
-      this._logger.error('Unable to authenticate with Sense.', response.statusText);
+      switch (failedResponse.status) {
+        case 'error':
+          this._logger.error('Unable to authenticate with Sense.', failedResponse.error_reason);
+          throw new SenseApiError(response);
+
+        case 'mfa_required':
+          this._logger.debug(`Sense authentication requires MFA for ${obfuscatedEmailAddress}.`);
+          return failedResponse.mfa_token;
+
+        default:
+          this._logger.error(`Unexpected authentication error from Sense API`);
+          throw new SenseApiError(response);
+      }
+    } else if (!response.ok) {
+      this._logger.error(`Unexpected response from Sense API: ${response.status}`);
       throw new SenseApiError(response);
-    }
-
-    if (requiresMfa) {
-      this._logger.debug(`Sense authentication requires MFA for ${obfuscatedEmailAddress}.`);
-      const mfaResponse: AuthenticationRequiresMfaResponse = await response.json();
-      return mfaResponse.mfa_token;
     }
 
     this._logger.debug(`Sense authentication successful for ${obfuscatedEmailAddress}.`);
