@@ -21,10 +21,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/** Response object returned after authentication request that requires multi-factor authentication. */
-export interface AuthenticationRequiresMfaResponse {
-  status: 'mfa_required';
-  mfa_token: string;
-  mfa_type: string;
-  error_reason: string;
-}
+import { AuthenticationErrorResponse } from './AuthenticationErrorResponse';
+import { AuthenticationRequiresMfaResponse } from './AuthenticationRequiresMfaResponse';
+
+/** Possible responses after authentication request failed. */
+export type AuthenticationFailedResponse = AuthenticationErrorResponse | AuthenticationRequiresMfaResponse;

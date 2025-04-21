@@ -24,6 +24,8 @@ SOFTWARE.
 import { SenseApiError, UnauthenticatedError } from '@/api/Errors';
 import { Logger } from '@/api/Logger';
 import { SenseApiClient } from '@/api/SenseApiClient';
+import { AuthenticationRequiresMfaResponse } from '@/index';
+import { AuthenticationErrorResponse } from '@/types/AuthenticationErrorResponse';
 import { Device } from '@/types/Device';
 import { MonitorOverview } from '@/types/MonitorOverview';
 import { Session } from '@/types/Session';
@@ -295,6 +297,30 @@ describe('SenseApiClient.login', () => {
   });
 
   describe('successful login without MFA', () => {
+    it('should handle invalid credentials', async () => {
+      const mockAuthResponse: AuthenticationErrorResponse = {
+        status: 'error',
+        title: 'Invalid credentials',
+        error_type: 'invalid_credentials',
+        error_reason: 'Invalid email or password'
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: () => Promise.resolve(mockAuthResponse)
+      });
+
+      const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      const sessionChangedSpy = vi.fn();
+      client.emitter.on('sessionChanged', sessionChangedSpy);
+
+      await expect(client.login(email, password)).rejects.toThrowError(SenseApiError);
+
+      expect(client.session).toBeUndefined();
+      expect(sessionChangedSpy).not.toHaveBeenCalled();
+    });
+
     it('should authenticate successfully and create session', async () => {
       const mockAuthResponse = {
         user_id: 123,
@@ -373,8 +399,11 @@ describe('SenseApiClient.login', () => {
 
   describe('MFA required scenario', () => {
     it('should return MFA token when MFA is required', async () => {
-      const mockMfaResponse = {
-        mfa_token: 'test-mfa-token'
+      const mockMfaResponse: AuthenticationRequiresMfaResponse = {
+        status: 'mfa_required',
+        mfa_token: 'test-mfa-token',
+        mfa_type: '',
+        error_reason: ''
       };
 
       mockFetch.mockResolvedValueOnce({
