@@ -175,6 +175,10 @@ export class SenseApiClient {
         case 'mfa_required':
           this._logger.debug(`Sense authentication requires MFA for ${obfuscatedEmailAddress}.`);
           return failedResponse.mfa_token;
+
+        default:
+          this._logger.error(`Unexpected authentication error from Sense API`);
+          throw new SenseApiError(response);
       }
     } else if (!response.ok) {
       this._logger.error(`Unexpected response from Sense API: ${response.status}`);
