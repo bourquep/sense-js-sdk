@@ -52,7 +52,13 @@ describe('SenseApiClient constructor', () => {
   });
 
   it('should initialize itself with the session object', () => {
-    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = {
+      emailAddress: 'testuser',
+      userId: 123,
+      monitorIds: [456],
+      accessToken: 'abc',
+      refreshToken: 'def'
+    };
     const client = new SenseApiClient(session);
     expect(client).toBeDefined();
     expect(client.session).toEqual(session);
@@ -72,6 +78,7 @@ describe('SenseApiClient constructor options', () => {
   const customWssUrl = 'wss://custom-ws.sense.com';
 
   const session: Session = {
+    emailAddress: 'testuser',
     userId: 123,
     monitorIds: [456],
     accessToken: 'abc',
@@ -241,7 +248,13 @@ describe('SenseApiClient.isAuthenticated', () => {
   });
 
   it('should return true if the session is set', () => {
-    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = {
+      emailAddress: 'testuser',
+      userId: 123,
+      monitorIds: [456],
+      accessToken: 'abc',
+      refreshToken: 'def'
+    };
     const client = new SenseApiClient(session);
     expect(client.isAuthenticated).toBe(true);
   });
@@ -249,7 +262,13 @@ describe('SenseApiClient.isAuthenticated', () => {
 
 describe('SenseApiClient.session', () => {
   it('should trigger the onSessionChange event when set', () => {
-    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = {
+      emailAddress: 'testuser',
+      userId: 123,
+      monitorIds: [456],
+      accessToken: 'abc',
+      refreshToken: 'def'
+    };
     const client = new SenseApiClient();
     const spy = vi.fn();
     client.emitter.on('sessionChanged', spy);
@@ -258,7 +277,13 @@ describe('SenseApiClient.session', () => {
   });
 
   it('should trigger the onSessionChange event when cleared', () => {
-    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = {
+      emailAddress: 'testuser',
+      userId: 123,
+      monitorIds: [456],
+      accessToken: 'abc',
+      refreshToken: 'def'
+    };
     const client = new SenseApiClient(session);
     const spy = vi.fn();
     client.emitter.on('sessionChanged', spy);
@@ -267,8 +292,20 @@ describe('SenseApiClient.session', () => {
   });
 
   it('should trigger the onSessionChange event when updated', () => {
-    const session1: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
-    const session2: Session = { userId: 456, monitorIds: [789], accessToken: 'ghi', refreshToken: 'jkl' };
+    const session1: Session = {
+      emailAddress: 'testuser',
+      userId: 123,
+      monitorIds: [456],
+      accessToken: 'abc',
+      refreshToken: 'def'
+    };
+    const session2: Session = {
+      emailAddress: 'testuser',
+      userId: 456,
+      monitorIds: [789],
+      accessToken: 'ghi',
+      refreshToken: 'jkl'
+    };
     const client = new SenseApiClient(session1);
     const spy = vi.fn();
     client.emitter.on('sessionChanged', spy);
@@ -277,7 +314,13 @@ describe('SenseApiClient.session', () => {
   });
 
   it('should not trigger the onSessionChange event when not updated', () => {
-    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = {
+      emailAddress: 'testuser',
+      userId: 123,
+      monitorIds: [456],
+      accessToken: 'abc',
+      refreshToken: 'def'
+    };
     const client = new SenseApiClient(session);
     const spy = vi.fn();
     client.emitter.on('sessionChanged', spy);
@@ -288,7 +331,7 @@ describe('SenseApiClient.session', () => {
 
 describe('SenseApiClient.login', () => {
   const mockFetch = vi.fn();
-  const email = 'test@example.com';
+  const emailAddress = 'test@example.com';
   const password = 'password123';
 
   beforeEach(() => {
@@ -315,7 +358,7 @@ describe('SenseApiClient.login', () => {
       const sessionChangedSpy = vi.fn();
       client.emitter.on('sessionChanged', sessionChangedSpy);
 
-      await expect(client.login(email, password)).rejects.toThrowError(SenseApiError);
+      await expect(client.login(emailAddress, password)).rejects.toThrowError(SenseApiError);
 
       expect(client.session).toBeUndefined();
       expect(sessionChangedSpy).not.toHaveBeenCalled();
@@ -338,10 +381,11 @@ describe('SenseApiClient.login', () => {
       const sessionChangedSpy = vi.fn();
       client.emitter.on('sessionChanged', sessionChangedSpy);
 
-      const result = await client.login(email, password);
+      const result = await client.login(emailAddress, password);
 
       expect(result).toBeUndefined();
       expect(client.session).toEqual({
+        emailAddress: emailAddress,
         userId: mockAuthResponse.user_id,
         monitorIds: [456, 789],
         accessToken: mockAuthResponse.access_token,
@@ -357,12 +401,13 @@ describe('SenseApiClient.login', () => {
       });
 
       const body = mockFetch.mock.calls[0][1].body;
-      expect(body.get('email')).toBe(email);
+      expect(body.get('email')).toBe(emailAddress);
       expect(body.get('password')).toBe(password);
     });
 
     it('should clear existing session before login attempt', async () => {
-      const existingSession = {
+      const existingSession: Session = {
+        emailAddress: 'testuser',
         userId: 999,
         monitorIds: [888],
         accessToken: 'old-token',
@@ -384,7 +429,7 @@ describe('SenseApiClient.login', () => {
       const sessionChangedSpy = vi.fn();
       client.emitter.on('sessionChanged', sessionChangedSpy);
 
-      await client.login(email, password);
+      await client.login(emailAddress, password);
 
       expect(sessionChangedSpy).toHaveBeenCalledTimes(2);
       expect(sessionChangedSpy).toHaveBeenNthCalledWith(1, undefined);
@@ -413,7 +458,7 @@ describe('SenseApiClient.login', () => {
       });
 
       const client = new SenseApiClient(undefined, { fetcher: mockFetch });
-      const result = await client.login(email, password);
+      const result = await client.login(emailAddress, password);
 
       expect(result).toBe('test-mfa-token');
       expect(client.session).toBeUndefined();
@@ -429,20 +474,22 @@ describe('SenseApiClient.login', () => {
       });
 
       const client = new SenseApiClient(undefined, { fetcher: mockFetch });
-      await expect(client.login(email, password)).rejects.toThrow(SenseApiError);
+      await expect(client.login(emailAddress, password)).rejects.toThrow(SenseApiError);
     });
 
     it('should handle network errors', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
       const client = new SenseApiClient(undefined, { fetcher: mockFetch });
-      await expect(client.login(email, password)).rejects.toThrow('Network error');
+      await expect(client.login(emailAddress, password)).rejects.toThrow('Network error');
     });
   });
 });
 
 describe('SenseApiClient.completeMfaLogin', () => {
   const mockFetch = vi.fn();
+  const emailAddress = 'test@example.com';
+  const password = 'test-password';
   const mfaToken = 'test-mfa-token';
   const oneTimePassword = '123456';
   const clientDate = new Date('2024-01-01T12:00:00Z');
@@ -453,7 +500,27 @@ describe('SenseApiClient.completeMfaLogin', () => {
   });
 
   describe('successful MFA completion', () => {
+    it('should throw when MFA is initiated without a prior call to login', async () => {
+      const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      const sessionChangedSpy = vi.fn();
+      client.emitter.on('sessionChanged', sessionChangedSpy);
+
+      await expect(client.completeMfaLogin(mfaToken, oneTimePassword, clientDate)).rejects.toThrow(
+        UnauthenticatedError
+      );
+
+      expect(client.session).toBeUndefined();
+      expect(sessionChangedSpy).not.toHaveBeenCalledWith();
+    });
+
     it('should complete MFA authentication and create session', async () => {
+      const mockLoginResponse: AuthenticationRequiresMfaResponse = {
+        status: 'mfa_required',
+        mfa_token: mfaToken,
+        error_reason: 'Requires MFA',
+        mfa_type: 'totp'
+      };
+
       const mockAuthResponse = {
         user_id: 123,
         monitors: [{ id: 456 }],
@@ -461,18 +528,26 @@ describe('SenseApiClient.completeMfaLogin', () => {
         refresh_token: 'mfa-refresh-token'
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockAuthResponse)
-      });
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 401,
+          json: () => Promise.resolve(mockLoginResponse)
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockAuthResponse)
+        });
 
       const client = new SenseApiClient(undefined, { fetcher: mockFetch });
       const sessionChangedSpy = vi.fn();
       client.emitter.on('sessionChanged', sessionChangedSpy);
 
+      await client.login(emailAddress, password);
       await client.completeMfaLogin(mfaToken, oneTimePassword, clientDate);
 
       expect(client.session).toEqual({
+        emailAddress: emailAddress,
         userId: mockAuthResponse.user_id,
         monitorIds: [456],
         accessToken: mockAuthResponse.access_token,
@@ -487,35 +562,50 @@ describe('SenseApiClient.completeMfaLogin', () => {
         body: expect.any(URLSearchParams)
       });
 
-      const body = mockFetch.mock.calls[0][1].body;
+      const body = mockFetch.mock.calls[1][1].body;
       expect(body.get('totp')).toBe(oneTimePassword);
       expect(body.get('mfa_token')).toBe(mfaToken);
       expect(body.get('client_time')).toBe(clientDate.toISOString());
     });
 
     it('should update existing session after MFA completion', async () => {
-      const existingSession = {
+      const mockLoginResponse: AuthenticationRequiresMfaResponse = {
+        status: 'mfa_required',
+        mfa_token: mfaToken,
+        error_reason: 'Requires MFA',
+        mfa_type: 'totp'
+      };
+
+      const existingSession: Session = {
+        emailAddress: 'testuser',
         userId: 999,
         monitorIds: [888],
         accessToken: 'old-token',
         refreshToken: 'old-refresh'
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            user_id: 123,
-            monitors: [{ id: 456 }],
-            access_token: 'new-token',
-            refresh_token: 'new-refresh'
-          })
-      });
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 401,
+          json: () => Promise.resolve(mockLoginResponse)
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              user_id: 123,
+              monitors: [{ id: 456 }],
+              access_token: 'new-token',
+              refresh_token: 'new-refresh'
+            })
+        });
 
       const client = new SenseApiClient(existingSession, { fetcher: mockFetch });
       const sessionChangedSpy = vi.fn();
       client.emitter.on('sessionChanged', sessionChangedSpy);
 
+      await client.login(emailAddress, password);
       await client.completeMfaLogin(mfaToken, oneTimePassword, clientDate);
 
       expect(sessionChangedSpy).toHaveBeenCalledWith(
@@ -528,20 +618,50 @@ describe('SenseApiClient.completeMfaLogin', () => {
 
   describe('error handling', () => {
     it('should throw SenseApiError on MFA verification failure', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 400,
-        statusText: 'Invalid MFA code'
-      });
+      const mockLoginResponse: AuthenticationRequiresMfaResponse = {
+        status: 'mfa_required',
+        mfa_token: mfaToken,
+        error_reason: 'Requires MFA',
+        mfa_type: 'totp'
+      };
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 401,
+          json: () => Promise.resolve(mockLoginResponse)
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 400,
+          statusText: 'Invalid MFA code'
+        });
 
       const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      await client.login(emailAddress, password);
+
       await expect(client.completeMfaLogin(mfaToken, oneTimePassword, clientDate)).rejects.toThrow(SenseApiError);
     });
 
     it('should handle network errors during MFA completion', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+      const mockLoginResponse: AuthenticationRequiresMfaResponse = {
+        status: 'mfa_required',
+        mfa_token: mfaToken,
+        error_reason: 'Requires MFA',
+        mfa_type: 'totp'
+      };
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 401,
+          json: () => Promise.resolve(mockLoginResponse)
+        })
+        .mockRejectedValueOnce(new Error('Network error'));
 
       const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      await client.login(emailAddress, password);
+
       await expect(client.completeMfaLogin(mfaToken, oneTimePassword, clientDate)).rejects.toThrow('Network error');
     });
   });
@@ -566,6 +686,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
 
     it('should throw UnauthenticatedError and clear session for invalid token format', async () => {
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: 'invalid-token',
@@ -583,6 +704,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
       const token = `t1.v2.${header}.${payload}.signature`;
 
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: token,
@@ -600,6 +722,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
       const token = `t1.v2.${header}.${payload}.signature`;
 
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: token,
@@ -616,6 +739,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should not refresh token if it is not expiring soon', async () => {
       const futureExp = dayjs().add(1, 'hour').unix();
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: createJwtToken(futureExp),
@@ -631,6 +755,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should refresh token if it is expiring soon', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: createJwtToken(soonExp),
@@ -669,6 +794,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
       const token = `${header}.${payload}.signature`;
 
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: token,
@@ -692,6 +818,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should throw SenseApiError when refresh request fails', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: createJwtToken(soonExp),
@@ -711,6 +838,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should update session with new tokens after successful refresh', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: createJwtToken(soonExp),
@@ -747,6 +875,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
       const futureExp = dayjs().add(1, 'hour').unix();
       const existingToken = createJwtToken(futureExp);
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: existingToken,
@@ -763,6 +892,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should return the new access token after successful refresh', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: createJwtToken(soonExp),
@@ -792,6 +922,7 @@ describe('SenseApiClient.getMonitorOverview', () => {
   const mockFetch = vi.fn();
   const monitorId = 456;
   const validSession: Session = {
+    emailAddress: 'testuser',
     userId: 123,
     monitorIds: [456],
     accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
@@ -845,6 +976,7 @@ describe('SenseApiClient.getMonitorDevices', () => {
   const mockFetch = vi.fn();
   const monitorId = 456;
   const validSession: Session = {
+    emailAddress: 'testuser',
     userId: 123,
     monitorIds: [456],
     accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
@@ -899,6 +1031,7 @@ describe('SenseApiClient.getMonitorTrends', () => {
   const monitorId = 456;
   const timezone = 'America/New_York';
   const validSession: Session = {
+    emailAddress: 'testuser',
     userId: 123,
     monitorIds: [456],
     accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
@@ -996,6 +1129,7 @@ describe('SenseApiClient.startRealtimeUpdates', () => {
   const mockFetch = vi.fn();
   const monitorId = 456;
   const validSession: Session = {
+    emailAddress: 'testuser',
     userId: 123,
     monitorIds: [456],
     accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
@@ -1171,6 +1305,7 @@ describe('SenseApiClient.startRealtimeUpdates', () => {
   it('should refresh token if needed before connecting', async () => {
     // Create session with soon-to-expire token
     const expiringSession: Session = {
+      emailAddress: 'testuser',
       userId: 123,
       monitorIds: [456],
       accessToken: createJwtToken(dayjs().add(5, 'minutes').unix()),
