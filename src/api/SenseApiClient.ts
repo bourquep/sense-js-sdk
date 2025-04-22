@@ -51,6 +51,9 @@ dayjs.updateLocale('en', {
 
 /** A client for interacting with the Sense API. */
 export class SenseApiClient {
+  /** The email address being used for the current login process, if any. */
+  private _currentLoginEmailAddress?: string;
+
   /** The current session object, if any. */
   private _session?: Session;
 
@@ -147,6 +150,7 @@ export class SenseApiClient {
    * @throws {@link SenseApiError} If authentication fails for reasons other than MFA being required.
    */
   async login(emailAddress: string, password: string): Promise<string | undefined> {
+    this._currentLoginEmailAddress = undefined;
     this.session = undefined;
 
     const obfuscatedEmailAddress = emailAddress.replace(/(?<=.{2}).(?=[^@]*?.@)/g, '*');
@@ -174,6 +178,7 @@ export class SenseApiClient {
 
         case 'mfa_required':
           this._logger.debug(`Sense authentication requires MFA for ${obfuscatedEmailAddress}.`);
+          this._currentLoginEmailAddress = emailAddress;
           return failedResponse.mfa_token;
 
         default:
@@ -208,6 +213,12 @@ export class SenseApiClient {
   async completeMfaLogin(mfaToken: string, oneTimePassword: string, clientDate: Date) {
     this._logger.debug('Completing MFA login...');
 
+    if (!this._currentLoginEmailAddress) {
+      throw new UnauthenticatedError(
+        'completeMfaLogin() was called without a prior call to login() that requires MFA authentication.'
+      );
+    }
+
     const response = await this._fetcher(`${this._apiUrl}/authenticate/mfa`, {
       method: 'POST',
       headers: {
@@ -230,11 +241,14 @@ export class SenseApiClient {
     const authResponse: AuthenticationResponse = await response.json();
 
     this.session = {
+      emailAddress: this._currentLoginEmailAddress,
       userId: authResponse.user_id,
       monitorIds: authResponse.monitors.map((monitor) => monitor.id),
       accessToken: authResponse.access_token,
       refreshToken: authResponse.refresh_token
     };
+
+    this._currentLoginEmailAddress = undefined;
   }
 
   /**

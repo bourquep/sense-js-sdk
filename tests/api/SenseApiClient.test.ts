@@ -488,6 +488,8 @@ describe('SenseApiClient.login', () => {
 
 describe('SenseApiClient.completeMfaLogin', () => {
   const mockFetch = vi.fn();
+  const emailAddress = 'test@example.com';
+  const password = 'test-password';
   const mfaToken = 'test-mfa-token';
   const oneTimePassword = '123456';
   const clientDate = new Date('2024-01-01T12:00:00Z');
@@ -498,7 +500,27 @@ describe('SenseApiClient.completeMfaLogin', () => {
   });
 
   describe('successful MFA completion', () => {
+    it('should throw when MFA is initiated without a prior call to login', async () => {
+      const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      const sessionChangedSpy = vi.fn();
+      client.emitter.on('sessionChanged', sessionChangedSpy);
+
+      await expect(client.completeMfaLogin(mfaToken, oneTimePassword, clientDate)).rejects.toThrow(
+        UnauthenticatedError
+      );
+
+      expect(client.session).toBeUndefined();
+      expect(sessionChangedSpy).not.toHaveBeenCalledWith();
+    });
+
     it('should complete MFA authentication and create session', async () => {
+      const mockLoginResponse: AuthenticationRequiresMfaResponse = {
+        status: 'mfa_required',
+        mfa_token: mfaToken,
+        error_reason: 'Requires MFA',
+        mfa_type: 'totp'
+      };
+
       const mockAuthResponse = {
         user_id: 123,
         monitors: [{ id: 456 }],
@@ -506,18 +528,26 @@ describe('SenseApiClient.completeMfaLogin', () => {
         refresh_token: 'mfa-refresh-token'
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockAuthResponse)
-      });
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 401,
+          json: () => Promise.resolve(mockLoginResponse)
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockAuthResponse)
+        });
 
       const client = new SenseApiClient(undefined, { fetcher: mockFetch });
       const sessionChangedSpy = vi.fn();
       client.emitter.on('sessionChanged', sessionChangedSpy);
 
+      await client.login(emailAddress, password);
       await client.completeMfaLogin(mfaToken, oneTimePassword, clientDate);
 
       expect(client.session).toEqual({
+        emailAddress: emailAddress,
         userId: mockAuthResponse.user_id,
         monitorIds: [456],
         accessToken: mockAuthResponse.access_token,
@@ -532,13 +562,20 @@ describe('SenseApiClient.completeMfaLogin', () => {
         body: expect.any(URLSearchParams)
       });
 
-      const body = mockFetch.mock.calls[0][1].body;
+      const body = mockFetch.mock.calls[1][1].body;
       expect(body.get('totp')).toBe(oneTimePassword);
       expect(body.get('mfa_token')).toBe(mfaToken);
       expect(body.get('client_time')).toBe(clientDate.toISOString());
     });
 
     it('should update existing session after MFA completion', async () => {
+      const mockLoginResponse: AuthenticationRequiresMfaResponse = {
+        status: 'mfa_required',
+        mfa_token: mfaToken,
+        error_reason: 'Requires MFA',
+        mfa_type: 'totp'
+      };
+
       const existingSession: Session = {
         emailAddress: 'testuser',
         userId: 999,
@@ -547,21 +584,28 @@ describe('SenseApiClient.completeMfaLogin', () => {
         refreshToken: 'old-refresh'
       };
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            user_id: 123,
-            monitors: [{ id: 456 }],
-            access_token: 'new-token',
-            refresh_token: 'new-refresh'
-          })
-      });
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 401,
+          json: () => Promise.resolve(mockLoginResponse)
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              user_id: 123,
+              monitors: [{ id: 456 }],
+              access_token: 'new-token',
+              refresh_token: 'new-refresh'
+            })
+        });
 
       const client = new SenseApiClient(existingSession, { fetcher: mockFetch });
       const sessionChangedSpy = vi.fn();
       client.emitter.on('sessionChanged', sessionChangedSpy);
 
+      await client.login(emailAddress, password);
       await client.completeMfaLogin(mfaToken, oneTimePassword, clientDate);
 
       expect(sessionChangedSpy).toHaveBeenCalledWith(
@@ -574,20 +618,50 @@ describe('SenseApiClient.completeMfaLogin', () => {
 
   describe('error handling', () => {
     it('should throw SenseApiError on MFA verification failure', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 400,
-        statusText: 'Invalid MFA code'
-      });
+      const mockLoginResponse: AuthenticationRequiresMfaResponse = {
+        status: 'mfa_required',
+        mfa_token: mfaToken,
+        error_reason: 'Requires MFA',
+        mfa_type: 'totp'
+      };
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 401,
+          json: () => Promise.resolve(mockLoginResponse)
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 400,
+          statusText: 'Invalid MFA code'
+        });
 
       const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      await client.login(emailAddress, password);
+
       await expect(client.completeMfaLogin(mfaToken, oneTimePassword, clientDate)).rejects.toThrow(SenseApiError);
     });
 
     it('should handle network errors during MFA completion', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+      const mockLoginResponse: AuthenticationRequiresMfaResponse = {
+        status: 'mfa_required',
+        mfa_token: mfaToken,
+        error_reason: 'Requires MFA',
+        mfa_type: 'totp'
+      };
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 401,
+          json: () => Promise.resolve(mockLoginResponse)
+        })
+        .mockRejectedValueOnce(new Error('Network error'));
 
       const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+      await client.login(emailAddress, password);
+
       await expect(client.completeMfaLogin(mfaToken, oneTimePassword, clientDate)).rejects.toThrow('Network error');
     });
   });
