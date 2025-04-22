@@ -331,7 +331,7 @@ describe('SenseApiClient.session', () => {
 
 describe('SenseApiClient.login', () => {
   const mockFetch = vi.fn();
-  const email = 'test@example.com';
+  const emailAddress = 'test@example.com';
   const password = 'password123';
 
   beforeEach(() => {
@@ -358,7 +358,7 @@ describe('SenseApiClient.login', () => {
       const sessionChangedSpy = vi.fn();
       client.emitter.on('sessionChanged', sessionChangedSpy);
 
-      await expect(client.login(email, password)).rejects.toThrowError(SenseApiError);
+      await expect(client.login(emailAddress, password)).rejects.toThrowError(SenseApiError);
 
       expect(client.session).toBeUndefined();
       expect(sessionChangedSpy).not.toHaveBeenCalled();
@@ -381,11 +381,11 @@ describe('SenseApiClient.login', () => {
       const sessionChangedSpy = vi.fn();
       client.emitter.on('sessionChanged', sessionChangedSpy);
 
-      const result = await client.login(email, password);
+      const result = await client.login(emailAddress, password);
 
       expect(result).toBeUndefined();
       expect(client.session).toEqual({
-        emailAddress: email,
+        emailAddress: emailAddress,
         userId: mockAuthResponse.user_id,
         monitorIds: [456, 789],
         accessToken: mockAuthResponse.access_token,
@@ -401,7 +401,7 @@ describe('SenseApiClient.login', () => {
       });
 
       const body = mockFetch.mock.calls[0][1].body;
-      expect(body.get('email')).toBe(email);
+      expect(body.get('email')).toBe(emailAddress);
       expect(body.get('password')).toBe(password);
     });
 
@@ -429,7 +429,7 @@ describe('SenseApiClient.login', () => {
       const sessionChangedSpy = vi.fn();
       client.emitter.on('sessionChanged', sessionChangedSpy);
 
-      await client.login(email, password);
+      await client.login(emailAddress, password);
 
       expect(sessionChangedSpy).toHaveBeenCalledTimes(2);
       expect(sessionChangedSpy).toHaveBeenNthCalledWith(1, undefined);
@@ -458,7 +458,7 @@ describe('SenseApiClient.login', () => {
       });
 
       const client = new SenseApiClient(undefined, { fetcher: mockFetch });
-      const result = await client.login(email, password);
+      const result = await client.login(emailAddress, password);
 
       expect(result).toBe('test-mfa-token');
       expect(client.session).toBeUndefined();
@@ -474,14 +474,14 @@ describe('SenseApiClient.login', () => {
       });
 
       const client = new SenseApiClient(undefined, { fetcher: mockFetch });
-      await expect(client.login(email, password)).rejects.toThrow(SenseApiError);
+      await expect(client.login(emailAddress, password)).rejects.toThrow(SenseApiError);
     });
 
     it('should handle network errors', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
       const client = new SenseApiClient(undefined, { fetcher: mockFetch });
-      await expect(client.login(email, password)).rejects.toThrow('Network error');
+      await expect(client.login(emailAddress, password)).rejects.toThrow('Network error');
     });
   });
 });
