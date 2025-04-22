@@ -27,6 +27,7 @@ SOFTWARE.
  * untrusted parties. It is recommended to store this object securely and only share it with trusted parties.
  */
 export interface Session {
+  emailAddress: string;
   userId: number;
   monitorIds: number[];
   accessToken: string;

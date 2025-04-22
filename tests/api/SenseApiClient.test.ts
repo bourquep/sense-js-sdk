@@ -52,7 +52,13 @@ describe('SenseApiClient constructor', () => {
   });
 
   it('should initialize itself with the session object', () => {
-    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = {
+      emailAddress: 'testuser',
+      userId: 123,
+      monitorIds: [456],
+      accessToken: 'abc',
+      refreshToken: 'def'
+    };
     const client = new SenseApiClient(session);
     expect(client).toBeDefined();
     expect(client.session).toEqual(session);
@@ -72,6 +78,7 @@ describe('SenseApiClient constructor options', () => {
   const customWssUrl = 'wss://custom-ws.sense.com';
 
   const session: Session = {
+    emailAddress: 'testuser',
     userId: 123,
     monitorIds: [456],
     accessToken: 'abc',
@@ -241,7 +248,13 @@ describe('SenseApiClient.isAuthenticated', () => {
   });
 
   it('should return true if the session is set', () => {
-    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = {
+      emailAddress: 'testuser',
+      userId: 123,
+      monitorIds: [456],
+      accessToken: 'abc',
+      refreshToken: 'def'
+    };
     const client = new SenseApiClient(session);
     expect(client.isAuthenticated).toBe(true);
   });
@@ -249,7 +262,13 @@ describe('SenseApiClient.isAuthenticated', () => {
 
 describe('SenseApiClient.session', () => {
   it('should trigger the onSessionChange event when set', () => {
-    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = {
+      emailAddress: 'testuser',
+      userId: 123,
+      monitorIds: [456],
+      accessToken: 'abc',
+      refreshToken: 'def'
+    };
     const client = new SenseApiClient();
     const spy = vi.fn();
     client.emitter.on('sessionChanged', spy);
@@ -258,7 +277,13 @@ describe('SenseApiClient.session', () => {
   });
 
   it('should trigger the onSessionChange event when cleared', () => {
-    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = {
+      emailAddress: 'testuser',
+      userId: 123,
+      monitorIds: [456],
+      accessToken: 'abc',
+      refreshToken: 'def'
+    };
     const client = new SenseApiClient(session);
     const spy = vi.fn();
     client.emitter.on('sessionChanged', spy);
@@ -267,8 +292,20 @@ describe('SenseApiClient.session', () => {
   });
 
   it('should trigger the onSessionChange event when updated', () => {
-    const session1: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
-    const session2: Session = { userId: 456, monitorIds: [789], accessToken: 'ghi', refreshToken: 'jkl' };
+    const session1: Session = {
+      emailAddress: 'testuser',
+      userId: 123,
+      monitorIds: [456],
+      accessToken: 'abc',
+      refreshToken: 'def'
+    };
+    const session2: Session = {
+      emailAddress: 'testuser',
+      userId: 456,
+      monitorIds: [789],
+      accessToken: 'ghi',
+      refreshToken: 'jkl'
+    };
     const client = new SenseApiClient(session1);
     const spy = vi.fn();
     client.emitter.on('sessionChanged', spy);
@@ -277,7 +314,13 @@ describe('SenseApiClient.session', () => {
   });
 
   it('should not trigger the onSessionChange event when not updated', () => {
-    const session: Session = { userId: 123, monitorIds: [456], accessToken: 'abc', refreshToken: 'def' };
+    const session: Session = {
+      emailAddress: 'testuser',
+      userId: 123,
+      monitorIds: [456],
+      accessToken: 'abc',
+      refreshToken: 'def'
+    };
     const client = new SenseApiClient(session);
     const spy = vi.fn();
     client.emitter.on('sessionChanged', spy);
@@ -342,6 +385,7 @@ describe('SenseApiClient.login', () => {
 
       expect(result).toBeUndefined();
       expect(client.session).toEqual({
+        emailAddress: email,
         userId: mockAuthResponse.user_id,
         monitorIds: [456, 789],
         accessToken: mockAuthResponse.access_token,
@@ -362,7 +406,8 @@ describe('SenseApiClient.login', () => {
     });
 
     it('should clear existing session before login attempt', async () => {
-      const existingSession = {
+      const existingSession: Session = {
+        emailAddress: 'testuser',
         userId: 999,
         monitorIds: [888],
         accessToken: 'old-token',
@@ -494,7 +539,8 @@ describe('SenseApiClient.completeMfaLogin', () => {
     });
 
     it('should update existing session after MFA completion', async () => {
-      const existingSession = {
+      const existingSession: Session = {
+        emailAddress: 'testuser',
         userId: 999,
         monitorIds: [888],
         accessToken: 'old-token',
@@ -566,6 +612,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
 
     it('should throw UnauthenticatedError and clear session for invalid token format', async () => {
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: 'invalid-token',
@@ -583,6 +630,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
       const token = `t1.v2.${header}.${payload}.signature`;
 
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: token,
@@ -600,6 +648,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
       const token = `t1.v2.${header}.${payload}.signature`;
 
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: token,
@@ -616,6 +665,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should not refresh token if it is not expiring soon', async () => {
       const futureExp = dayjs().add(1, 'hour').unix();
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: createJwtToken(futureExp),
@@ -631,6 +681,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should refresh token if it is expiring soon', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: createJwtToken(soonExp),
@@ -669,6 +720,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
       const token = `${header}.${payload}.signature`;
 
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: token,
@@ -692,6 +744,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should throw SenseApiError when refresh request fails', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: createJwtToken(soonExp),
@@ -711,6 +764,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should update session with new tokens after successful refresh', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: createJwtToken(soonExp),
@@ -747,6 +801,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
       const futureExp = dayjs().add(1, 'hour').unix();
       const existingToken = createJwtToken(futureExp);
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: existingToken,
@@ -763,6 +818,7 @@ describe('SenseApiClient.refreshAccessTokenIfNeeded', () => {
     it('should return the new access token after successful refresh', async () => {
       const soonExp = dayjs().add(10, 'minutes').unix();
       const session: Session = {
+        emailAddress: 'testuser',
         userId: 123,
         monitorIds: [456],
         accessToken: createJwtToken(soonExp),
@@ -792,6 +848,7 @@ describe('SenseApiClient.getMonitorOverview', () => {
   const mockFetch = vi.fn();
   const monitorId = 456;
   const validSession: Session = {
+    emailAddress: 'testuser',
     userId: 123,
     monitorIds: [456],
     accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
@@ -845,6 +902,7 @@ describe('SenseApiClient.getMonitorDevices', () => {
   const mockFetch = vi.fn();
   const monitorId = 456;
   const validSession: Session = {
+    emailAddress: 'testuser',
     userId: 123,
     monitorIds: [456],
     accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
@@ -899,6 +957,7 @@ describe('SenseApiClient.getMonitorTrends', () => {
   const monitorId = 456;
   const timezone = 'America/New_York';
   const validSession: Session = {
+    emailAddress: 'testuser',
     userId: 123,
     monitorIds: [456],
     accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
@@ -996,6 +1055,7 @@ describe('SenseApiClient.startRealtimeUpdates', () => {
   const mockFetch = vi.fn();
   const monitorId = 456;
   const validSession: Session = {
+    emailAddress: 'testuser',
     userId: 123,
     monitorIds: [456],
     accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
@@ -1171,6 +1231,7 @@ describe('SenseApiClient.startRealtimeUpdates', () => {
   it('should refresh token if needed before connecting', async () => {
     // Create session with soon-to-expire token
     const expiringSession: Session = {
+      emailAddress: 'testuser',
       userId: 123,
       monitorIds: [456],
       accessToken: createJwtToken(dayjs().add(5, 'minutes').unix()),

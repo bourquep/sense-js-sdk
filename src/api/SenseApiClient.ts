@@ -189,6 +189,7 @@ export class SenseApiClient {
     const authResponse: AuthenticationResponse = await response.json();
 
     this.session = {
+      emailAddress: emailAddress,
       userId: authResponse.user_id,
       monitorIds: authResponse.monitors.map((monitor) => monitor.id),
       accessToken: authResponse.access_token,
