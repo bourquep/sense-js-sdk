@@ -28,6 +28,7 @@ import { AuthenticationRequiresMfaResponse } from '@/index';
 import { AuthenticationErrorResponse } from '@/types/AuthenticationErrorResponse';
 import { Device } from '@/types/Device';
 import { MonitorOverview } from '@/types/MonitorOverview';
+import { MonitorStatus } from '@/types/MonitorStatus';
 import { Session } from '@/types/Session';
 import { Trends } from '@/types/Trends';
 import dayjs from 'dayjs';
