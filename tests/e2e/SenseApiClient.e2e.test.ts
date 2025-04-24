@@ -91,6 +91,13 @@ describe.runIf(runTests)('SenseApiClient E2E', () => {
       expect(overview.monitor_overview.monitor.id).toBe(monitorId);
     });
 
+    it('should get monitor status', async () => {
+      const monitorId = client.session!.monitorIds[0];
+      const status = await client.getMonitorStatus(monitorId);
+
+      expect(status).toBeDefined();
+    });
+
     it('should get monitor devices', async () => {
       const monitorId = client.session!.monitorIds[0];
       const devices = await client.getMonitorDevices(monitorId);

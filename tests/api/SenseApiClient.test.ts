@@ -972,6 +972,57 @@ describe('SenseApiClient.getMonitorOverview', () => {
   });
 });
 
+describe('SenseApiClient.getMonitorStatus', () => {
+  const mockFetch = vi.fn();
+  const monitorId = 456;
+  const validSession: Session = {
+    emailAddress: 'testuser',
+    userId: 123,
+    monitorIds: [456],
+    accessToken: createJwtToken(dayjs().add(1, 'hour').unix()),
+    refreshToken: 'refresh-token'
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockReset();
+  });
+
+  it('should fetch monitor statuses successfully', async () => {
+    const mockStatus = mock<MonitorStatus>();
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(mockStatus)
+    });
+
+    const client = new SenseApiClient(validSession, { fetcher: mockFetch });
+    const result = await client.getMonitorStatus(monitorId);
+
+    expect(result).toEqual(mockStatus);
+    expect(mockFetch).toHaveBeenCalledWith(`https://api.sense.com/apiservice/api/v1/app/monitors/${monitorId}/status`, {
+      headers: {
+        Authorization: `Bearer ${validSession.accessToken}`
+      }
+    });
+  });
+
+  it('should throw SenseApiError when request fails', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Not Found'
+    });
+
+    const client = new SenseApiClient(validSession, { fetcher: mockFetch });
+    await expect(client.getMonitorStatus(monitorId)).rejects.toThrow(SenseApiError);
+  });
+
+  it('should throw UnauthenticatedError when no session exists', async () => {
+    const client = new SenseApiClient(undefined, { fetcher: mockFetch });
+    await expect(client.getMonitorStatus(monitorId)).rejects.toThrow(UnauthenticatedError);
+  });
+});
+
 describe('SenseApiClient.getMonitorDevices', () => {
   const mockFetch = vi.fn();
   const monitorId = 456;
