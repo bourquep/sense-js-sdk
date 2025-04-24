@@ -30,6 +30,7 @@ export * from './types/DeviceType';
 export * from './types/Monitor';
 export * from './types/MonitorAttributes';
 export * from './types/MonitorOverview';
+export * from './types/MonitorStatus';
 export * from './types/PeerName';
 export * from './types/Session';
 export * from './types/Settings';

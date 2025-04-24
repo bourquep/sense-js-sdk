@@ -26,6 +26,7 @@ import { AuthenticationFailedResponse } from '@/types/AuthenticationFailedRespon
 import { AuthenticationResponse } from '@/types/AuthenticationResponse';
 import { Device } from '@/types/Device';
 import { MonitorOverview } from '@/types/MonitorOverview';
+import { MonitorStatus } from '@/types/MonitorStatus';
 import { RealtimePayload } from '@/types/RealtimePayload';
 import { Session } from '@/types/Session';
 import { Trends } from '@/types/Trends';
@@ -263,6 +264,30 @@ export class SenseApiClient {
     const accessToken = await this.refreshAccessTokenIfNeeded();
 
     const response = await this._fetcher(`${this._apiUrl}/app/monitors/${monitorId}/overview`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new SenseApiError(response);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Retrieves the status of a specific Sense monitor.
+   *
+   * @param monitorId - The ID of the Sense monitor to get the status for.
+   * @returns A promise that resolves to a {@link MonitorStatus} object containing the monitor's status data.
+   * @throws {@link SenseApiError} If the API request fails.
+   * @throws {@link UnauthenticatedError} If there is no valid session.
+   */
+  async getMonitorStatus(monitorId: number): Promise<MonitorStatus> {
+    const accessToken = await this.refreshAccessTokenIfNeeded();
+
+    const response = await this._fetcher(`${this._apiUrl}/app/monitors/${monitorId}/status`, {
       headers: {
         Authorization: `Bearer ${accessToken}`
       }
